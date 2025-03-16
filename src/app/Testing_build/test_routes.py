@@ -57,6 +57,10 @@ def user(test_input: A_Route_Inputs, db : Session = Depends(get_db)):
     return db_test
 
 @router.get("/get_test")
-def get_last_name(name: String, db : Session = Depends(get_db)):
-    db.query(User).filter(User.name == name).first()
+def get_last_name(name: str, db : Session = Depends(get_db)):
+    db_find_name = db.query(DB_Test_Save).filter(DB_Test_Save.name == name).first()
+    if db_find_name is None:
+        return "no"
+    else:
+        return db_find_name.last_name
 

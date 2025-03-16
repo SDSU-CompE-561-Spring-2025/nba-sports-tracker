@@ -6,10 +6,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
 router = APIRouter()
 
-
-dummy_id = 1
-
-
 class A_Route_Inputs(BaseModel):
     name: constr(min_length=5, max_length=20)
     last_name: constr(min_length=5, max_length=20)
@@ -19,7 +15,7 @@ class DB_Test_Save(Base):
 
     __tablename__ = "test_table"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, index=True)
     last_name = Column(String, unique=True, index=True)
 
@@ -49,16 +45,13 @@ class Return_A_Route():
 @router.post("/a_route")
 def user(test_input: A_Route_Inputs, db : Session = Depends(get_db)):
     return_value = Return_A_Route(test_input.name + "10", test_input.last_name + "10")
-    global dummy_id
     db_test = DB_Test_Save(
-        id = dummy_id,
         name = test_input.name,
         last_name = test_input.last_name
     )
     db.add(db_test)
     db.commit()
     db.refresh(db_test)
-    dummy_id += 1
     #return_value.name_r = test_input.name + "10"
     #return_value.last_name_r = test_input.last_name + "10"
     return db_test

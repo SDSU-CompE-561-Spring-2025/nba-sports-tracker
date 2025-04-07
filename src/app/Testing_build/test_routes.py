@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, constr, EmailStr, Field
 from app.Testing_build.db_grabber import Base, get_db
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
+import time
 router = APIRouter()
 
 class A_Route_Inputs(BaseModel):
@@ -32,6 +33,22 @@ class DB_Test_Save(Base):
     #created_at = Column(DateTime, default=datetime.now(UTC))
 
     #categories = relationship("Category", back_populates="user")
+
+class UserCreateInput(BaseModel):
+    user_name: constr(min_length=3, max_length=40)
+    email: EmailStr
+    password: constr(min_length=8, max_length=64)
+
+
+
+class DBUsers(Base):
+    __tablename__ = "Users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_name = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+    created_at = Column(String, index=True)
 
 
 class Return_A_Route():
@@ -63,4 +80,62 @@ def get_last_name(name: str, db : Session = Depends(get_db)):
         return "no"
     else:
         return db_find_name.last_name
+
+
+@router.post("/make_user")
+def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
+    existing_user = db.query(DBUsers).filter(DBUsers.user_name == new_user.user_name).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already taken")
+
+    existing_email = db.query(DBUsers).filter(DBUsers.email == new_user.email).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already taken")
+
+    user_save = DBUsers(
+        user_name=new_user.user_name,
+        email=new_user.email,
+        password_hash=new_user.password,
+        created_at=time.strftime("%H:%M:%S", time.localtime())
+    )
+
+    db.add(user_save)
+    db.commit()
+    db.refresh(user_save)
+    return user_save
+
+
+@router.get("/user/{user_id}")
+def get_user_by_username(user_id: int, db: Session = Depends(get_db)):
+    sample_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not sample_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return sample_user
+
+
+@router.put("/user/update/{user_id}")
+def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not selected_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name and
+                                             DBUsers.id != user_id).first()
+    if existing_user:
+
+        raise HTTPException(status_code=400, detail="Username already taken")
+
+    existing_email = db.query(DBUsers).filter(DBUsers.email == up_user.email and
+                                              DBUsers.id != user_id).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already taken")
+
+    selected_user.user_name = up_user.user_name
+    selected_user.email = up_user.email
+    selected_user.password = up_user.password
+
+    db.commit()
+    db.refresh(selected_user)
+
+    return {"message": "User updated successfully"}
 

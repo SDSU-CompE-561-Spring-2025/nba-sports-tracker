@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from app.Testing_build.db_grabber import Base, engine
-from app.Testing_build import api_router
+from app.Backend.db_grabber import Base, engine
+from app.Backend import api_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()

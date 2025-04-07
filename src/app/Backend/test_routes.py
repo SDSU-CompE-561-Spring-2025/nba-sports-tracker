@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, constr, EmailStr, Field
-from app.Testing_build.db_grabber import Base, get_db
+from app.Backend.db_grabber import Base, get_db
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
 import time
+from passlib.context import CryptContext
 router = APIRouter()
 
 class A_Route_Inputs(BaseModel):
@@ -82,6 +83,9 @@ def get_last_name(name: str, db : Session = Depends(get_db)):
         return db_find_name.last_name
 
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
 @router.post("/make_user")
 def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     existing_user = db.query(DBUsers).filter(DBUsers.user_name == new_user.user_name).first()
@@ -92,12 +96,16 @@ def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     if existing_email:
         raise HTTPException(status_code=400, detail="Email already taken")
 
+
     user_save = DBUsers(
         user_name=new_user.user_name,
         email=new_user.email,
-        password_hash=new_user.password,
+        password_hash=pwd_context.hash(new_user.password),
         created_at=time.strftime("%H:%M:%S", time.localtime())
     )
+
+    #if not pwd_context.verify(new_user.password, user_save.password_hash):
+    #    raise HTTPException(status_code=401, detail="Incorrect password")
 
     db.add(user_save)
     db.commit()

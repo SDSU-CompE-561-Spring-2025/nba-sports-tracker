@@ -119,15 +119,13 @@ def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depen
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name and
-                                             DBUsers.id != user_id).first()
-    if existing_user:
+    existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name).first()
+    if existing_user and existing_user.id != user_id:
 
         raise HTTPException(status_code=400, detail="Username already taken")
 
-    existing_email = db.query(DBUsers).filter(DBUsers.email == up_user.email and
-                                              DBUsers.id != user_id).first()
-    if existing_email:
+    existing_email = db.query(DBUsers).filter(DBUsers.email == up_user.email).first()
+    if existing_email and existing_user.id != user_id:
         raise HTTPException(status_code=400, detail="Email already taken")
 
     selected_user.user_name = up_user.user_name

@@ -176,13 +176,21 @@ def confirm_user(attempt_user: ConfirmUser, db: Session = Depends(get_db)):
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     user_to_delete = db.query(DBUsers).filter(DBUsers.id == user_id).first()
     name = ""
+    user_to_delete_id = 101
     if not user_to_delete:
         raise HTTPException(status_code=404, detail="User not found")
-    else:
-        name = user_to_delete.user_name
-        db.delete(user_to_delete)
+
+    name = user_to_delete.user_name
+    user_to_delete_id = user_to_delete.id
+    db.delete(user_to_delete)
+    db.commit()
+
+    # Delete corresponding audio files
+    audio_records_to_delete = db.query(DBAudio).filter(DBAudio.user_id == user_to_delete_id).all()
+    for audio_record in audio_records_to_delete:
+        db.delete(audio_record)
         db.commit()
-    
+
     test_delete = db.query(DBUsers).filter(DBUsers.id == user_id).first()
     if not test_delete:
         return "User: " + name + ", was deleted successfully!"

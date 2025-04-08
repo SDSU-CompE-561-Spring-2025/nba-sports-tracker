@@ -6,6 +6,10 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
 import time
 from passlib.context import CryptContext
+
+from app.core.auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
+from app.schemas.token import Token
+
 router = APIRouter()
 
 class A_Route_Inputs(BaseModel):
@@ -273,3 +277,24 @@ def delete_audio(audio_id: int, db: Session = Depends(get_db)):
         return "Audio file: " + name + ", was deleted successfully!"
 
     return "Audio file: " +  name + ", was not deleted"
+
+@router.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
+    user = user_service.authenticate_user(
+        db, username=form_data.username, password=form_data.password
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

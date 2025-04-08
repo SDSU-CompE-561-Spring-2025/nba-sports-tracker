@@ -162,3 +162,19 @@ def confirm_user(attempt_user: ConfirmUser, db: Session = Depends(get_db)):
     return attempted_user
 
 
+@router.delete("/user/delete/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user_to_delete = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    name = ""
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User not found")
+    else:
+        name = user_to_delete.user_name
+        db.delete(user_to_delete)
+        db.commit()
+    
+    test_delete = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not test_delete:
+        return "User: " + name + ", was deleted successfully!"
+
+    return "User: " + name + ", was deleted successfully"

@@ -41,6 +41,10 @@ class UserCreateInput(BaseModel):
     password: constr(min_length=8, max_length=64)
 
 
+class ConfirmUser(BaseModel):
+    user_name: constr(min_length=3, max_length=40)
+    password: constr(min_length=8, max_length=64)
+
 
 class DBUsers(Base):
     __tablename__ = "Users"
@@ -138,12 +142,25 @@ def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depen
 
     selected_user.user_name = up_user.user_name
     selected_user.email = up_user.email
-    selected_user.password = up_user.password
+    selected_user.password = pwd_context.hash(up_user.password)
 
     db.commit()
     db.refresh(selected_user)
 
-    return {"message": "User updated successfully"}
+    return selected_user
+
+
+@router.post("/user/confirm")
+def confirm_user(attempt_user: ConfirmUser, db: Session = Depends(get_db)):
+    attempted_user = db.query(DBUsers).filter(DBUsers.user_name == attempt_user.user_name).first()
+    if not attempted_user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    if not pwd_context.verify(attempt_user.password, attempted_user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    return attempted_user
+
 
 @router.delete("/user/delete/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):

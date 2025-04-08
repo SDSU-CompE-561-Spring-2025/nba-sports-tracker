@@ -26,12 +26,14 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = db.query(User).filter(User.username == username).first()
+def authenticate_user(db: Session, user_name: str, password: str):
+    # Query the user_name field
+    user = db.query(User).filter(User.user_name == user_name).first()
     if not user:
-        return False
+        return None
+    # Verify the password against the password_hash field
     if not verify_password(password, user.password_hash):
-        return False
+        return None
     return user
 
 

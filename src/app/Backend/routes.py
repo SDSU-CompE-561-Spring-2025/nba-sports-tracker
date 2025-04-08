@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, constr, EmailStr, Field, FilePath
 from app.Backend.db_grabber import Base, get_db
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
 import time
+from datetime import timedelta
 from passlib.context import CryptContext
 
 from app.core.auth import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
@@ -284,8 +285,9 @@ def delete_audio(audio_id: int, db: Session = Depends(get_db)):
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
+    # Use user_name instead of username
     user = user_service.authenticate_user(
-        db, username=form_data.username, password=form_data.password
+        db, user_name=form_data.username, password=form_data.password
     )
 
     if not user:
@@ -297,6 +299,6 @@ async def login_for_access_token(
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.user_name}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}

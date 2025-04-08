@@ -4,7 +4,7 @@ import enum
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from app.core.database import Base
+from app.Professor.core.database import Base
 
 
 class TransactionType(enum.Enum):
@@ -21,4 +21,5 @@ class Category(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.now(UTC))
 
-    user = relationship("User", back_populates="categories")
+    # Use lazy evaluation for the relationship
+    user = relationship("User", back_populates="categories", lazy="select")

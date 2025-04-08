@@ -139,6 +139,12 @@ def get_user_by_username(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return sample_user
 
+@router.get("/audio/temp_view/{user_id}")
+def get_user_by_username(user_id: int, db: Session = Depends(get_db)):
+    sample_user = db.query(DBAudio).filter(DBAudio.user_id == user_id).first()
+    if not sample_user:
+        raise HTTPException(status_code=404, detail="No Audio")
+    return sample_user
 
 @router.put("/user/update/{user_id}")
 def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depends(get_db)):

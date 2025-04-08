@@ -56,6 +56,16 @@ class DBUsers(Base):
     created_at = Column(String, index=True)
 
 
+class DBAudio(Base):
+    __tablename__ = "Audio"
+
+    track_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, index=True)
+    audio_name = Column(String, index=True)
+    created_at = Column(String, index=True)
+    file_path = Column(String, index=True)
+
+
 class Return_A_Route():
     name_r = ""
     last_name_r = ""

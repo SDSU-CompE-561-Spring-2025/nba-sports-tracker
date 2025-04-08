@@ -237,9 +237,11 @@ def user_create_audio(user_id: int, audio_input: AudioCreateInput, db: Session =
 def user_get_all_audio(user_id: int, db: Session = Depends(get_db)):
     audio_records = db.query(DBAudio).filter(DBAudio.user_id == user_id).all()
     return audio_records
+
+
 @router.put("/audio/update/{audio_id}")
 def update_audio(audio_id: int, audio_input: AudioCreateInput, db: Session = Depends(get_db)):
-    selected_audio = db.query(DBAudio).filter(DBAudio.id == audio_id).first()
+    selected_audio = db.query(DBAudio).filter(DBAudio.track_id == audio_id).first()
     if not selected_audio:
         raise HTTPException(status_code=404, detail="Audio not found")
 

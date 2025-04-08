@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, constr, EmailStr, Field
+from pydantic import BaseModel, constr, EmailStr, Field, FilePath
 from app.Backend.db_grabber import Base, get_db
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
@@ -44,6 +44,11 @@ class UserCreateInput(BaseModel):
 class ConfirmUser(BaseModel):
     user_name: constr(min_length=3, max_length=40)
     password: constr(min_length=8, max_length=64)
+
+
+class AudioCreateInput(BaseModel):
+    audio_name: constr(min_length=3, max_length=40)
+    file_path: str
 
 
 class DBUsers(Base):
@@ -188,3 +193,29 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         return "User: " + name + ", was deleted successfully!"
 
     return "User: " + name + ", was deleted successfully"
+
+
+@router.post("/audio/create/{user_id}")
+def user_create_audio(user_id: int, audio_input: AudioCreateInput, db: Session = Depends(get_db)):
+    attempted_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not attempted_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user_audios = db.query(DBAudio).filter(DBAudio.user_id == user_id).all()
+
+    for audio_file in user_audios:
+        if audio_file.audio_name == audio_input.audio_name:
+            raise HTTPException(status_code=400, detail="Audio name already used")
+
+    audio_save = DBAudio(
+        user_id=user_id,
+        audio_name=audio_input.audio_name,
+        created_at=time.strftime("%H:%M:%S", time.localtime()),
+        file_path=audio_input.file_path
+    )
+
+    db.add(audio_save)
+    db.commit()
+    db.refresh(audio_save)
+    return audio_save
+

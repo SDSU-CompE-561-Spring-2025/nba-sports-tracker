@@ -206,7 +206,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     if not test_delete:
         return "User: " + name + ", was deleted successfully!"
 
-    return "User: " + name + ", was deleted successfully"
+    return "User: " + name + ", was not deleted"
 
 
 @router.post("/audio/create/{user_id}")
@@ -259,3 +259,17 @@ def update_audio(audio_id: int, audio_input: AudioCreateInput, db: Session = Dep
     db.refresh(selected_audio)
     return selected_audio
 
+@router.delete("/audio/delete/{audio_id}")
+def delete_audio(audio_id: int, db: Session = Depends(get_db)):
+    audio_to_delete = db.query(DBAudio).filter(DBAudio.track_id == audio_id).first()
+    if not audio_to_delete:
+        raise HTTPException(status_code=404, detail="Audio not found with provided id")
+    name = audio_to_delete.audio_name
+    db.delete(audio_to_delete)
+    db.commit()
+
+    test_delete = db.query(DBAudio).filter(DBAudio.track_id == audio_id).first()
+    if not test_delete:
+        return "Audio file: " + name + ", was deleted successfully!"
+
+    return "Audio file: " +  name + ", was not deleted"

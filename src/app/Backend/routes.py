@@ -1,12 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, constr, EmailStr, Field, FilePath
 from app.Backend.db_grabber import Base, get_db
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
 import time
+from datetime import datetime, timedelta, UTC
+import jwt
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 from passlib.context import CryptContext
+from datetime import timezone
+from app.schemas.token import Token
 router = APIRouter()
+from app.core.config import settings
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
 
 class A_Route_Inputs(BaseModel):
     name: constr(min_length=5, max_length=20)
@@ -273,3 +282,33 @@ def delete_audio(audio_id: int, db: Session = Depends(get_db)):
         return "Audio file: " + name + ", was deleted successfully!"
 
     return "Audio file: " +  name + ", was not deleted"
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    expire = datetime.now(UTC) + (
+        expires_delta if expires_delta else timedelta(minutes=15)
+    )
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+@router.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    # Authenticate user
+    user = db.query(DBUsers).filter(DBUsers.user_name == form_data.username).first()
+    if not user or not pwd_context.verify(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Generate access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.user_name}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

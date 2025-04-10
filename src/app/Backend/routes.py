@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 import time
 from datetime import datetime, timedelta, UTC
 import jwt
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 from passlib.context import CryptContext
 from datetime import timezone
 from app.schemas.token import Token
@@ -16,6 +15,7 @@ router = APIRouter()
 from app.core.config import settings
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class A_Route_Inputs(BaseModel):
     name: constr(min_length=5, max_length=20)

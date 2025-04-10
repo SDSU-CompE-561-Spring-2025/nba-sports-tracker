@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 import time
 from datetime import datetime, timedelta, UTC
 import jwt
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 from passlib.context import CryptContext
 from datetime import timezone
 from app.schemas.token import Token
@@ -23,6 +22,7 @@ from sendgrid.helpers.mail import Mail
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class A_Route_Inputs(BaseModel):
     name: constr(min_length=5, max_length=20)
@@ -403,3 +403,4 @@ def send_verification_email(to_email, code):
     except Exception as e:
         print(str(e))
         return None
+

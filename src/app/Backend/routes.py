@@ -14,6 +14,13 @@ from datetime import timezone
 from app.schemas.token import Token
 router = APIRouter()
 from app.core.config import settings
+
+#verification code libraries
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
+
+
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 
@@ -49,6 +56,7 @@ class UserCreateInput(BaseModel):
     email: EmailStr
     password: constr(min_length=8, max_length=64)
 
+
 class UpdateUserName(BaseModel):
     user_name: constr(min_length=3, max_length=40)
 
@@ -73,6 +81,10 @@ class DBUsers(Base):
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
     created_at = Column(String, index=True)
+
+    is_verified = Column(Boolean, default=True)
+    verification_code = Column(String, nullable=True)
+    verification_code_expiry = Column(String, nullable=True)  # Expiration time for verification code
 
 
 class DBAudio(Base):
@@ -129,13 +141,20 @@ def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     if existing_email:
         raise HTTPException(status_code=400, detail="Email already taken")
 
+    # Generate verification code
+    verification_code = generate_verification_code()
 
     user_save = DBUsers(
         user_name=new_user.user_name,
         email=new_user.email,
         password_hash=pwd_context.hash(new_user.password),
-        created_at=time.strftime("%H:%M:%S", time.localtime())
+        created_at=time.strftime("%H:%M:%S", time.localtime()),
+        is_verified=False,
+        verification_code=verification_code,
+        verification_code_expiry=datetime.now(timezone.utc) + timedelta(minutes=10)  # Set expiration time to 10 minutes from now
     )
+
+    send_verification_email(new_user.email, verification_code)
 
     #if not pwd_context.verify(new_user.password, user_save.password_hash):
     #    raise HTTPException(status_code=401, detail="Incorrect password")
@@ -144,6 +163,49 @@ def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     db.commit()
     db.refresh(user_save)
     return user_save
+
+@router.put("/user/verify/{user_id}")
+def verify_user(user_id: int, verification_code: str, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not selected_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if (selected_user.verification_code == str(verification_code)):
+        # Check if the verification code is expired
+        TimeExpiryVerification = str(datetime.now(timezone.utc))
+        if (TimeExpiryVerification < selected_user.verification_code_expiry):
+            # Verification code is valid and not expired
+            selected_user.is_verified = True
+            db.commit()
+            db.refresh(selected_user)
+            return selected_user
+        else: 
+            raise HTTPException(status_code=400, detail="Verification code expired, please request a new one")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+    
+
+@router.put("/user/verify/newcoderequest/{user_id}")
+def request_new_verification_code(user_id: int, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not selected_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if selected_user.is_verified:
+        raise HTTPException(status_code=400, detail="User already verified")
+    # Generate verification code
+    verification_code = generate_verification_code()
+    
+    selected_user.verification_code=verification_code
+    selected_user.verification_code_expiry=datetime.now(timezone.utc) + timedelta(minutes=10)  # Set expiration time to 10 minutes from now
+
+    send_verification_email(selected_user.email, verification_code)
+
+    db.commit()
+    db.refresh(selected_user)
+    
+    return HTTPException(status_code=200, detail="New verification code sent to email")
+
 
 
 @router.get("/user/{user_id}")
@@ -183,24 +245,6 @@ def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depen
     db.refresh(selected_user)
 
     return selected_user
-
-@router.put("/user/update/username/{user_id}")
-def update_username(user_id: int, up_user: UpdateUserName, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
-    if not selected_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name).first()
-    if existing_user and existing_user.id != user_id:
-
-        raise HTTPException(status_code=400, detail="Username already taken")
-
-    selected_user.user_name = up_user.user_name
-
-    db.commit()
-    db.refresh(selected_user)
-
-    return selected_user.user_name
 
 
 @router.post("/user/confirm")
@@ -335,3 +379,27 @@ async def login_for_access_token(
         data={"sub": user.user_name}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+def generate_verification_code():
+    import random
+    
+    code = random.randint(100000, 999999) #6 digit code random
+
+    return code
+
+def send_verification_email(to_email, code):
+    message = Mail(
+        from_email='loraha4821@sdsu.edu',
+        to_emails=to_email,
+        subject='Your Verification Code',
+        plain_text_content=f'Your code is: {code}'
+    )
+
+    try:
+        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)  # api key to send the email
+        response = sg.send(message)
+        return response.status_code
+    except Exception as e:
+        print(str(e))
+        return None

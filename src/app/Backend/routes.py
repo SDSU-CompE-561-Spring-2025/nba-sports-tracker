@@ -49,6 +49,11 @@ class UserCreateInput(BaseModel):
     email: EmailStr
     password: constr(min_length=8, max_length=64)
 
+class UpdateUserName(BaseModel):
+    user_name: constr(min_length=3, max_length=40)
+
+class UpdateEmail(BaseModel):
+    email: EmailStr
 
 class ConfirmUser(BaseModel):
     user_name: constr(min_length=3, max_length=40)
@@ -178,6 +183,24 @@ def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depen
     db.refresh(selected_user)
 
     return selected_user
+
+@router.put("/user/update/username/{user_id}")
+def update_username(user_id: int, up_user: UpdateUserName, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not selected_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name).first()
+    if existing_user and existing_user.id != user_id:
+
+        raise HTTPException(status_code=400, detail="Username already taken")
+
+    selected_user.user_name = up_user.user_name
+
+    db.commit()
+    db.refresh(selected_user)
+
+    return selected_user.user_name
 
 
 @router.post("/user/confirm")

@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "bandit>=1.8.3",
+  "bcrypt==3.2.0",
   "fastapi[all]",
   "hatch>=1.14.1",
   "passlib[bcrypt]>=1.7.4",
@@ -33,6 +34,7 @@ dependencies = [
   "pyjwt>=2.10.1",
   "python-dotenv>=1.0.1",
   "ruff>=0.9.7",
+  "sendgrid>=6.11.0",
   "sqlalchemy>=2.0.38",
 ]
 

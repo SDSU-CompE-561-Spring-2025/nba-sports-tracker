@@ -63,6 +63,9 @@ class UpdateUserName(BaseModel):
 class UpdateEmail(BaseModel):
     email: EmailStr
 
+class UpdatePassword(BaseModel):
+    password: constr(min_length=8, max_length=64)
+
 class ConfirmUser(BaseModel):
     user_name: constr(min_length=3, max_length=40)
     password: constr(min_length=8, max_length=64)
@@ -265,6 +268,35 @@ def update_username(user_id: int, up_user: UpdateUserName, db: Session = Depends
 
     return selected_user.user_name
 
+@router.put("/user/update/password/{user_id}")
+def update_password(user_id: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not selected_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    selected_user.password = pwd_context.hash(up_user.password)
+
+    db.commit()
+    db.refresh(selected_user)
+
+    return "Password updated for " + selected_user.user_name
+
+@router.put("/user/update/email/{user_id}")
+def update_email(user_id: int, up_user: UpdateEmail, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    if not selected_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    existing_email = db.query(DBUsers).filter(DBUsers.email == up_user.email).first()
+    if existing_email and existing_email.id != user_id:
+        raise HTTPException(status_code=400, detail="Email already taken")
+
+    selected_user.email = up_user.email
+   
+    db.commit()
+    db.refresh(selected_user)
+
+    return "Email updated for " + selected_user.user_name
 
 @router.post("/user/confirm")
 def confirm_user(attempt_user: ConfirmUser, db: Session = Depends(get_db)):

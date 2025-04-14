@@ -1,7 +1,7 @@
+#External Imports
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, constr, EmailStr, Field, FilePath
-from app.Backend.db_grabber import Base, get_db
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Session
@@ -10,104 +10,26 @@ from datetime import datetime, timedelta, UTC
 import jwt
 from passlib.context import CryptContext
 from datetime import timezone
-from app.schemas.token import Token
-router = APIRouter()
+
+#Imports from other files
+from app.Backend.models import DB_Test_Save, DBUsers, DBAudio
+from app.Backend.schemas import A_Route_Inputs, Return_A_Route, UserCreateInput, UpdateUserName, UpdateEmail, UpdatePassword, ConfirmUser, AudioCreateInput
+from app.Backend.auth import create_access_token, generate_verification_code, send_verification_email
 from app.core.config import settings
+from app.schemas.token import Token
+from app.Backend.database import Base, get_db
 
 #verification code libraries
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-
-
+#Secret Key Settings
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-class A_Route_Inputs(BaseModel):
-    name: constr(min_length=5, max_length=20)
-    last_name: constr(min_length=5, max_length=20)
-
-
-class DB_Test_Save(Base):
-
-    __tablename__ = "test_table"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column(String, unique=True, index=True)
-    last_name = Column(String, unique=True, index=True)
-
-    #categories = relationship("Category", back_populates="test")
-    #__tablename__ = "users"
-
-    #id = Column(Integer, primary_key=True, index=True)
-    #username = Column(String, unique=True, index=True)
-    #email = Column(String, unique=True, index=True)
-    #password_hash = Column(String)
-    #is_active = Column(Boolean, default=True)
-    #is_verified = Column(Boolean, default=True)
-    #verification_code = Column(String, nullable=True)
-    #created_at = Column(DateTime, default=datetime.now(UTC))
-
-    #categories = relationship("Category", back_populates="user")
-
-class UserCreateInput(BaseModel):
-    user_name: constr(min_length=3, max_length=40)
-    email: EmailStr
-    password: constr(min_length=8, max_length=64)
-
-
-class UpdateUserName(BaseModel):
-    user_name: constr(min_length=3, max_length=40)
-
-class UpdateEmail(BaseModel):
-    email: EmailStr
-
-class UpdatePassword(BaseModel):
-    password: constr(min_length=8, max_length=64)
-
-class ConfirmUser(BaseModel):
-    user_name: constr(min_length=3, max_length=40)
-    password: constr(min_length=8, max_length=64)
-
-
-class AudioCreateInput(BaseModel):
-    audio_name: constr(min_length=3, max_length=40)
-    file_path: str
-
-
-class DBUsers(Base):
-    __tablename__ = "Users"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_name = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
-    password_hash = Column(String)
-    created_at = Column(String, index=True)
-
-    is_verified = Column(Boolean, default=True)
-    verification_code = Column(String, nullable=True)
-    verification_code_expiry = Column(String, nullable=True)  # Expiration time for verification code
-
-
-class DBAudio(Base):
-    __tablename__ = "Audio"
-
-    track_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, index=True)
-    audio_name = Column(String, index=True)
-    created_at = Column(String, index=True)
-    file_path = Column(String, index=True)
-
-
-class Return_A_Route():
-    name_r = ""
-    last_name_r = ""
-    def __init__(self, param1, param2):
-        self.last_name_r = param1
-        self.name_r = param2
-
-
+router = APIRouter()
+#Test Routes
 @router.post("/a_route")
 def user(test_input: A_Route_Inputs, db : Session = Depends(get_db)):
     return_value = Return_A_Route(test_input.name + "10", test_input.last_name + "10")
@@ -132,8 +54,7 @@ def get_last_name(name: str, db : Session = Depends(get_db)):
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
+#Actual Routes
 @router.post("/make_user")
 def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     existing_user = db.query(DBUsers).filter(DBUsers.user_name == new_user.user_name).first()
@@ -208,8 +129,6 @@ def request_new_verification_code(user_id: int, db: Session = Depends(get_db)):
     db.refresh(selected_user)
     
     return HTTPException(status_code=200, detail="New verification code sent to email")
-
-
 
 @router.get("/user/{user_id}")
 def get_user_by_username(user_id: int, db: Session = Depends(get_db)):
@@ -401,15 +320,6 @@ def delete_audio(audio_id: int, db: Session = Depends(get_db)):
 
     return "Audio file: " +  name + ", was not deleted"
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    expire = datetime.now(UTC) + (
-        expires_delta if expires_delta else timedelta(minutes=15)
-    )
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -432,26 +342,5 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-def generate_verification_code():
-    import random
-    
-    code = random.randint(100000, 999999) #6 digit code random
 
-    return code
-
-def send_verification_email(to_email, code):
-    message = Mail(
-        from_email='loraha4821@sdsu.edu',
-        to_emails=to_email,
-        subject='Your Verification Code',
-        plain_text_content=f'Your code is: {code}'
-    )
-
-    try:
-        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)  # api key to send the email
-        response = sg.send(message)
-        return response.status_code
-    except Exception as e:
-        print(str(e))
-        return None
 

@@ -15,6 +15,8 @@ from datetime import timezone
 from app.core.config import settings
 from app.schemas.token import Token
 from app.Backend.database import Base, get_db
+from app.schemas.token import TokenData
+from jwt import InvalidTokenError
 
 #verification code libraries
 from sendgrid import SendGridAPIClient
@@ -34,6 +36,16 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def decode_access_token(token: str) -> TokenData:
+    try: 
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid Token")
+        return TokenData(username=username)
+    except InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
 
 #Email User Verification
 def generate_verification_code():

@@ -149,6 +149,10 @@ Postman collections for testing the API are located in the `tests/` directory:
 2. **Run the Tests**:
    - Use the Postman Collection Runner to execute the tests.
 
+3. **Run Unit Tests with PyTest**
+   - Run pytest in the terminal, this will automatically run all the tests in our test_main.py file
+   - This is a quick and efficient way of testing our fastAPI endpoints without having to keep using the /docs page in a web browser
+
 ---
 
 ## License

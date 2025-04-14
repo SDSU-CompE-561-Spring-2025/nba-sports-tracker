@@ -10,7 +10,7 @@ def test_create_user():
     response = client.post(
         "/auth/make_user",
         json={
-            "user_name": "testuser + str(randomNumber)",
+            "user_name": "testuser" + str(randomNumber),
             #email with a random number:
             "email": "testuser" + str(randomNumber) + "@example.com",
             "password": "Securepassword1"

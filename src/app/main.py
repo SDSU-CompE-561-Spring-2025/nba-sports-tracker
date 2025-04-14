@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.Backend.db_grabber import Base, engine
+from app.Backend.database import Base, engine
 from app.Backend import api_router
 
 Base.metadata.create_all(bind=engine)

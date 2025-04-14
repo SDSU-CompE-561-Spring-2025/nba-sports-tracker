@@ -15,7 +15,7 @@ from datetime import timezone
 from app.Backend.auth import create_access_token, generate_verification_code, send_verification_email
 from app.core.config import settings
 from app.schemas.token import Token
-from app.Backend.db_grabber import Base, get_db
+from app.Backend.database import Base, get_db
 
 #verification code libraries
 from sendgrid import SendGridAPIClient

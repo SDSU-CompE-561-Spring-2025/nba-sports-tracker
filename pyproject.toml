@@ -3,15 +3,20 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "app"
+name = "The Audio Hub"
 dynamic = ["version"]
-description = ''
+description = "Backend for The Audio Hub project"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
-keywords = []
+keywords = ["fastapi", "nba", "sports", "tracker"]
 authors = [
-  { name = "Ugur Emre Dogan", email = "ue.dogan@gmail.com" },
+  { name = "Logan Hall", email = "logan-hall@sdsu.edu" },
+  { name = "Noah Molla", email = "noahmolla@sdsu.edu" },
+  { name = "Christian Kassab", email = "christianlkassab@sdsu.edu" },
+  { name = "Laith", email = "laith204@sdsu.edu" },
+  { name = "Sean Hashem", email = "seanhashem@sdsu.edu" },
+  { name = "Satya Nampalli", email = "satyanampalli@sdsu.edu" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -25,36 +30,35 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "bandit>=1.8.3",
-  "bcrypt==3.2.0",
   "fastapi[all]",
-  "hatch>=1.14.1",
-  "passlib[bcrypt]>=1.7.4",
-  "pre-commit>=4.1.0",
-  "pyjwt>=2.10.1",
-  "python-dotenv>=1.0.1",
+  "uvicorn",
+  "sqlalchemy",
+  "pydantic",
+  "python-dotenv",
+  "passlib[bcrypt]",
+  "pyjwt",
+  "sendgrid",
+  "bcrypt",
+  "bandit>=1.8.3",
   "ruff>=0.9.7",
-  "sendgrid>=6.11.0",
-  "sqlalchemy>=2.0.38",
+  "pre-commit>=4.1.0",
 ]
 
 [project.urls]
-Documentation = "https://github.com/Ugur Emre Dogan/app#readme"
-Issues = "https://github.com/Ugur Emre Dogan/app/issues"
-Source = "https://github.com/Ugur Emre Dogan/app"
+Documentation = "https://github.com/UgurEmreDogan/nba-sports-tracker#readme"
+Issues = "https://github.com/UgurEmreDogan/nba-sports-tracker/issues"
+Source = "https://github.com/UgurEmreDogan/nba-sports-tracker"
 
 [tool.hatch.version]
 path = "src/app/__about__.py"
 
 [tool.hatch.envs.default]
-# Default environment settings
 python = "3.12"
 installer = "uv"
 path = ".venv"
 
 [tool.hatch.envs.default.scripts]
-# Default environment scripts for development and database operations
-dev = "fastapi dev {args:src/app/main.py}"
+dev = "uvicorn src.app.main:app --reload"
 
 [tool.hatch.envs.types]
 installer = "uv"

@@ -21,29 +21,6 @@ from app.Backend.database import Base, get_db
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-#Test class for testing DBs
-class DB_Test_Save(Base):
-
-    __tablename__ = "test_table"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column(String, unique=True, index=True)
-    last_name = Column(String, unique=True, index=True)
-
-    #categories = relationship("Category", back_populates="test")
-    #__tablename__ = "users"
-
-    #id = Column(Integer, primary_key=True, index=True)
-    #username = Column(String, unique=True, index=True)
-    #email = Column(String, unique=True, index=True)
-    #password_hash = Column(String)
-    #is_active = Column(Boolean, default=True)
-    #is_verified = Column(Boolean, default=True)
-    #verification_code = Column(String, nullable=True)
-    #created_at = Column(DateTime, default=datetime.now(UTC))
-
-    #categories = relationship("Category", back_populates="user")
-
 #User DB Model
 class DBUsers(Base):
     __tablename__ = "Users"

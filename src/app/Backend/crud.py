@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 from datetime import timezone
 
 #Imports from other files
-from app.Backend.models import DB_Test_Save, DBUsers, DBAudio
+from app.Backend.models import DBUsers, DBAudio
 from app.Backend.schemas import A_Route_Inputs, Return_A_Route, UserCreateInput, UpdateUserName, UpdateEmail, UpdatePassword, ConfirmUser, AudioCreateInput
 from app.Backend.auth import create_access_token, generate_verification_code, send_verification_email
 from app.core.config import settings
@@ -29,29 +29,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 router = APIRouter()
-#Test Routes
-@router.post("/a_route")
-def user(test_input: A_Route_Inputs, db : Session = Depends(get_db)):
-    return_value = Return_A_Route(test_input.name + "10", test_input.last_name + "10")
-    db_test = DB_Test_Save(
-        name = test_input.name,
-        last_name = test_input.last_name
-    )
-    db.add(db_test)
-    db.commit()
-    db.refresh(db_test)
-    #return_value.name_r = test_input.name + "10"
-    #return_value.last_name_r = test_input.last_name + "10"
-    return db_test
-
-@router.get("/get_test")
-def get_last_name(name: str, db : Session = Depends(get_db)):
-    db_find_name = db.query(DB_Test_Save).filter(DB_Test_Save.name == name).first()
-    if db_find_name is None:
-        return "no"
-    else:
-        return db_find_name.last_name
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 #Actual Routes

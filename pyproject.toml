@@ -30,18 +30,17 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "fastapi[all]",
-  "uvicorn",
-  "sqlalchemy",
-  "pydantic",
-  "python-dotenv",
-  "passlib[bcrypt]",
-  "pyjwt",
-  "sendgrid",
-  "bcrypt",
   "bandit>=1.8.3",
-  "ruff>=0.9.7",
+  "bcrypt==3.2.0",
+  "fastapi[all]",
+  "hatch>=1.14.1",
+  "passlib[bcrypt]>=1.7.4",
   "pre-commit>=4.1.0",
+  "pyjwt>=2.10.1",
+  "python-dotenv>=1.0.1",
+  "ruff>=0.9.7",
+  "sendgrid>=6.11.0",
+  "sqlalchemy>=2.0.38",
 ]
 
 [project.urls]
@@ -53,12 +52,14 @@ Source = "https://github.com/UgurEmreDogan/nba-sports-tracker"
 path = "src/app/__about__.py"
 
 [tool.hatch.envs.default]
+# Default environment settings
 python = "3.12"
 installer = "uv"
 path = ".venv"
 
 [tool.hatch.envs.default.scripts]
-dev = "uvicorn src.app.main:app --reload"
+# Default environment scripts for development and database operations
+dev = "fastapi dev {args:src/app/main.py}"
 
 [tool.hatch.envs.types]
 installer = "uv"

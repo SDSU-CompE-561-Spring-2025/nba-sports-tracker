@@ -8,7 +8,7 @@ from app.Backend.database import Base, engine
 from app.Backend import api_router
 
 # Configure logging - used chat gpt to help with this
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

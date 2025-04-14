@@ -12,6 +12,7 @@
 - [Project Structure](#project-structure)
 - [Running the Application](#running-the-application)
 - [API Endpoints](#api-endpoints)
+- [Middleware](#middleware)
 - [Testing](#testing)
 - [License](#license)
 
@@ -19,7 +20,7 @@
 
 ## Project Overview
 
-This project implements the backend of a full-stack web application using **FastAPI**. It includes user authentication, CRUD operations for users and audio files, and email verification using SendGrid. The backend is built following best practices and includes unit tests for key functionality.
+This project implements the backend of a full-stack web application using **FastAPI**. It includes user authentication, CRUD operations for users and audio files, email verification using SendGrid, and middleware for logging and CORS handling. The backend is built following best practices and includes unit tests for key functionality.
 
 ---
 
@@ -109,6 +110,25 @@ nba-sports-tracker/
 ### Verification Endpoints
 - **PUT** `/auth/user/verify/{user_id}`: Verify a user using a verification code.
 - **PUT** `/auth/user/verify/newcoderequest/{user_id}`: Request a new verification code.
+
+---
+
+## Middleware
+
+### CORS Middleware
+The application uses FastAPI's `CORSMiddleware` to handle Cross-Origin Resource Sharing (CORS). This allows the frontend (e.g., React or Angular) to communicate with the backend.
+
+- **Configuration**:
+  - `allow_origins=["*"]`: Allows requests from any origin (use specific origins in production).
+  - `allow_methods=["*"]`: Allows all HTTP methods (e.g., GET, POST, PUT, DELETE).
+  - `allow_headers=["*"]`: Allows all headers in requests.
+
+### Logging Middleware
+The application includes a custom logging middleware to log incoming requests and outgoing responses.
+
+- **Logs**:
+  - Logs the HTTP method and URL of each request.
+  - Logs the status code of each response.
 
 ---
 

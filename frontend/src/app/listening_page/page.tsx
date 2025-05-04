@@ -20,27 +20,23 @@ export default function Page() {
       <div className="text-center p-6 bg-white shadow-lg rounded-2xl w-full max-w-md">
         <h1 className="text-2xl font-semibold text-indigo-700 mb-6">Play Your Audio File</h1>
 
-        <label className="block mb-6">
-          <input
-            type="file"
-            accept="audio/mp3,audio/wav"
-            onChange={handleFileChange}
-            className="hidden"
-            id="audio-upload"
-          />
-          <span
-            className="inline-block cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
-            onClick={() => document.getElementById('audio-upload')?.click()}
-          >
-            Choose File
-          </span>
+        {/* Use label for clean click trigger */}
+        <label htmlFor="audio-upload" className="cursor-pointer inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+          Choose File
         </label>
+        <input
+          id="audio-upload"
+          type="file"
+          accept="audio/mp3,audio/wav"
+          onChange={handleFileChange}
+          className="hidden"
+        />
 
         {audioSrc && (
           <audio
             controls
             src={audioSrc}
-            className="w-full mt-4 rounded-md border border-indigo-300"
+            className="w-full mt-6 rounded-md border border-indigo-300"
           >
             Your browser does not support the audio element.
           </audio>

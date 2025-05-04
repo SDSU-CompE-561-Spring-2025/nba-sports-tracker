@@ -30,7 +30,6 @@ export default function RootLayout({
       >
     <h1><PageSelect/></h1>
             {children}
-        <footer>Footer</footer>
       </body>
     </html>
   );

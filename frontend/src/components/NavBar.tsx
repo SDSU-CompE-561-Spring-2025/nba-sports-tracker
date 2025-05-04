@@ -2,11 +2,11 @@
 
 const navList = [
     {
-        label: "Home_Page",
+        label: "Home",
         link: '/',
     },
     {
-        label: "Account_Page",
+        label: "Dashboard",
         link: "/account_page",
  },
     // {
@@ -80,7 +80,7 @@ function NavBar() {
                 
             <Button variant={'outline'} size={'icon'}>
                 <Link
-                    href="/sign_in_sign_up"
+                    href="/sign_in_sign_up/sign-up"
                     className="
                             flex              
                             items-center       

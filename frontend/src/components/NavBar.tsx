@@ -65,13 +65,13 @@ function NavBar() {
                 <Link
                     href="/sign_in_sign_up"
                         className="
-                        inline-flex        /* becomes a flex container */
-                        items-center       /* vertically center its content */
-                        justify-center     /* horizontally center its content */
-                        h-full             /* match the nav’s height (e.g. 80px) */
-                        aspect-square      /* force width = height */
-                        p-0                /* no extra padding */
-                        rounded-none       /* square corners */
+                        flex           
+                        items-center       
+                        justify-center     
+                        h-full             
+                        aspect-square      
+                        p-0                
+                        rounded-none       
                         "
                     >                       
                     <LogIn/>
@@ -82,13 +82,13 @@ function NavBar() {
                 <Link
                     href="/sign_in_sign_up"
                     className="
-                            inline-flex        /* becomes a flex container */
-                            items-center       /* vertically center its content */
-                            justify-center     /* horizontally center its content */
-                            h-full             /* match the nav’s height (e.g. 80px) */
-                            aspect-square      /* force width = height */
-                            p-0                /* no extra padding */
-                            rounded-none       /* square corners */
+                            flex              
+                            items-center       
+                            justify-center     
+                            h-full            
+                            aspect-square      
+                            p-0               
+                            rounded-none     
                     "
                 >
                     <UserRoundPlus/>
@@ -136,7 +136,7 @@ function NavbarItems({link, label, clickCallBack}: NavbarItemProps) {
                     {label}
                 </Link>
                 {isActive && (
-                    <div className="absolute -bottom-[2px] left-1/2 hidden h-[5px] w-[80%] -translate-x-1/2 rounded xl bg-amber-500 md:block" />
+                    <div className="absolute -bottom-[1px] left-1/2 hidden h-[3.5px] w-[80%] -translate-x-1/2 rounded xl bg-amber-500 md:block" />
                 )}
             </div>
         </>

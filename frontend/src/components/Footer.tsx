@@ -4,37 +4,47 @@ import Link from "next/link";
 
 export default function Footer() {
     return (
-        <footer className="absulute bottom-0 bg-gray-900 text-white py-8 mt-20">
-            <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    <Link
-                        className="text-white hover:text-gray-300"
-                        href="#"
-                    >
-                        <YoutubeIcon className="h-6 w-6" />
-                        <span className="sr-only">YouTube</span>
-                    </Link>
-                    <Link
-                        className="text-white hover:text-gray-300"
-                        href="#"
-                    >
-                        <GithubIcon className="h-6 w-6" />
-                        <span className="sr-only">GitHub</span>
-                    </Link>
-                    <Link
-                        className="text-white hover:text-gray-300"
-                        href="#"
-                    >
-                        <TwitterIcon className="h-6 w-6" />
-                        <span className="sr-only">Twitter</span>
-                    </Link>
-                </div>
-                <p className="mt-4 md:mt-0 text-sm text-gray-300">
-                    &copy; 2025 The Audio Hub. All rights reserved.
-                </p>
+        <footer
+          className="
+            w-full 
+            bg-white        dark:bg-black
+            text-black   dark:text-gray-100
+            py-8 
+          "
+        >
+          <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link
+                href="#"
+                className="hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <YoutubeIcon className="h-6 w-6" />
+                <span className="sr-only">YouTube</span>
+              </Link>
+    
+              <Link
+                href="#"
+                className="hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <GithubIcon className="h-6 w-6" />
+                <span className="sr-only">GitHub</span>
+              </Link>
+    
+              <Link
+                href="#"
+                className="hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <TwitterIcon className="h-6 w-6" />
+                <span className="sr-only">Twitter</span>
+              </Link>
             </div>
+    
+            <p className="mt-4 md:mt-0 text-sm">
+              &copy; 2025 The Audio Hub. All rights reserved.
+            </p>
+          </div>
         </footer>
-    );
+      );
 }
 
 function GithubIcon(props: any) {

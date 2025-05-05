@@ -5,6 +5,8 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { AuthProvider } from '@/context/AuthContext';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -31,11 +33,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-center text-5xl`}
       >
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <NavBar/>
-        <div className={'relative flex h-screen w-full flex-col'}>
-          {children}
-        </div>
-        <Footer/>
+        <AuthProvider>
+          <NavBar/>
+          <div className={'relative flex h-screen w-full flex-col'}>
+            {children}
+          </div>
+          <Footer/>
+        </AuthProvider>
       </ThemeProvider>
       </body>
     </html>

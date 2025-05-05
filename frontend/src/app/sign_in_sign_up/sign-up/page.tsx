@@ -1,111 +1,41 @@
-"use client"
+import SignUpForm from "@/components/SignUpForm";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button'
-import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage, Form } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { API_HOST_BASE_URL } from '@/lib/constants'
-import { zodResolver } from '@hookform/resolvers/zod'
-import React from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from "zod"
 
-function SignUpPage() {
 
-  const formSchema = z.object({
-    user_name:  z.any(),   
-    email:   z.any(),   
-    password:  z.any(),   
-  })
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      user_name: '',
-      email: '',
-			password: '',
-    },
-  })
-  
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-		const data = values;
 
-		const response = await fetch(`${API_HOST_BASE_URL}/auth/make_user`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(data),
-		});
-
-		if (response.ok) {
-			// const result = await response.json();
-			// toast('Everything went wrong');
-			// localStorage.setItem('accessToken', result.access_token);
-
-			setTimeout(() => {
-				window.location.href = '/';
-			}, 2000);
-			return true;
-		}
-		throw new Error('Invalid Credentials');
-  }
-
-  return (
-       <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="user_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="Username" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-         <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Email Address" {...field} />
-              </FormControl>
-              <FormDescription>
-                Enter your email here
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-         <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input placeholder="Password" {...field} />
-              </FormControl>
-              <FormDescription>
-                Enter your Password
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Submit</Button>
-      </form>
-    </Form>
-  )
+export default function SignUpPage() {
+    return (
+        <div className="
+            flex flex-col items-center justify-center 
+            bg-background
+            container mx-auto px-4 mt-25
+            "
+        >
+            <div className={"items-center w-75"}>
+                <SignUpForm/> 
+            </div>
+            <div className={"flex items-center gap-4 justify-center mt-3"}> 
+                <p className={"text-sm leading-none m-0"}>Already have an account?</p>
+                <Button variant={"outline"} className="">
+                    <Link
+                        href="/sign_in_sign_up/sign-in"
+                        className="
+                                flex              
+                                items-center       
+                                justify-center     
+                                h-full            
+                                aspect-square      
+                                p-0               
+                                rounded-none     
+                        "
+                    >
+                        Sign In Here
+                    </Link>
+                </Button>
+            </div>
+        </div>
+    );
 }
-
-export default SignUpPage;

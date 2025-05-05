@@ -91,10 +91,11 @@ export default function ViewFilePaths() {
   {/* Search Input */}
   <input
     type="text"
+    style={{ fontSize: "1rem" }}
     value={searchTerm}
     onChange={(e) => setSearchTerm(e.target.value)}
     placeholder="Search audio name..."
-    className="w-full max-w-sm px-4 py-2 rounded-lg border border-gray-600 bg-blue-900 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-200"
+    className="w-full max-w-55 px-4 py-2 rounded-lg border border-gray-600 bg-blue-900 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-200 text-12"
   />
 
   {/* Delete Button (only shown if a row is selected) */}

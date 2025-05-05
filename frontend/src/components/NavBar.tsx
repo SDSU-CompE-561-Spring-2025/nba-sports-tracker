@@ -1,5 +1,6 @@
 "use client";
 
+
 const navList = [
     {
         label: "Home",
@@ -8,7 +9,7 @@ const navList = [
     {
         label: "Dashboard",
         link: "/account_page",
- },
+    },
     // {
     //     label: "File_Path_View_All",
     //     link: '/file_path_view_all',
@@ -27,8 +28,8 @@ const navList = [
     // }
 ]
 
+import { useAuth } from '@/context/AuthContext'; 
 import { ThemeSwitcherButton } from "@/components/ThemeSwitcherButton";
-import { link } from "fs";
 import Logo from '@/components/Logo';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -39,8 +40,22 @@ import UserButton from "@/components/UserButton";
 
 function NavBar() {
     const pathname = usePathname();
-    const isActive = pathname === '/';
-
+    const { token } = useAuth();               // ② grab the JWT
+  
+    // ③ if no token, render nothing
+    if (!token) {
+        return (
+          <div className="w-full py-8 bg-background text-center space-y-4">
+            <h1 className="text-5xl font-bold">The Audio Hub</h1>
+            <p className="text-lg text-gray-600">
+              Paste, manage and play your audio file paths in one place.
+            </p>
+              <p className="inline-block bg-amber-500 text-white px-6 py-3 rounded-lg">
+                Get Started  
+              </p>
+          </div>
+        );
+      }
 
     return (
      <div className={"hidden border-serperate border-b bg-background md:block"}>

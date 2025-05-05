@@ -63,7 +63,7 @@ function NavBar() {
                 
             <Button variant={'outline'} size={'icon'}>
                 <Link
-                    href="/sign_in_sign_up"
+                    href="/sign_in_sign_up/sign-in"
                         className="
                         flex           
                         items-center       

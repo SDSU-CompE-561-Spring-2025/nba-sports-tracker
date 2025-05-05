@@ -12,10 +12,10 @@ const navList = [
         link: "/dashboard",
         protected: true,
     },
-    // {
-    //     label: "File_Path_View_All",
-    //     link: '/file_path_view_all',
-    // },
+    {
+        label: "File_Path_View_All",
+        link: '/file_path_view_all',
+    },
     {
          label: "Listening_Page",
          link: '/listening_page',

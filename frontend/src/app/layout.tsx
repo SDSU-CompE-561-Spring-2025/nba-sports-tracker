@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PageSelect from "@/components/PageSelect";
 
+import { AuthProvider } from '@/context/AuthContext';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,8 +30,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-    <h1><PageSelect/></h1>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <AuthProvider>
+          <NavBar/>
+          <div className={'relative flex h-screen w-full flex-col'}>
             {children}
+          </div>
+          <Footer/>
+        </AuthProvider>
+      </ThemeProvider>
       </body>
     </html>
   );

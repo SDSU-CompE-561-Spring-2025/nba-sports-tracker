@@ -12,6 +12,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { motion, AnimatePresence } from "framer-motion";
+ 
+export function InputDemo() {
+  return <Input type="email" placeholder="Email" />
+}
 
 
 type AudioRecord = {
@@ -26,51 +32,6 @@ export default function ViewFilePaths() {
     const [audioData, setAudioData] = useState<AudioRecord[]>([]);
 
     const [userId, setUserId] = useState<number>(1);
-
-    const invoices = [
-        {
-          invoice: "INV001",
-          paymentStatus: "Paid",
-          totalAmount: "$250.00",
-          paymentMethod: "Credit Card",
-        },
-        {
-          invoice: "INV002",
-          paymentStatus: "Pending",
-          totalAmount: "$150.00",
-          paymentMethod: "PayPal",
-        },
-        {
-          invoice: "INV003",
-          paymentStatus: "Unpaid",
-          totalAmount: "$350.00",
-          paymentMethod: "Bank Transfer",
-        },
-        {
-          invoice: "INV004",
-          paymentStatus: "Paid",
-          totalAmount: "$450.00",
-          paymentMethod: "Credit Card",
-        },
-        {
-          invoice: "INV005",
-          paymentStatus: "Paid",
-          totalAmount: "$550.00",
-          paymentMethod: "PayPal",
-        },
-        {
-          invoice: "INV006",
-          paymentStatus: "Pending",
-          totalAmount: "$200.00",
-          paymentMethod: "Bank Transfer",
-        },
-        {
-          invoice: "INV007",
-          paymentStatus: "Unpaid",
-          totalAmount: "$300.00",
-          paymentMethod: "Credit Card",
-        },
-      ]
 
     useEffect(() => {
         if (!userId) return;
@@ -90,48 +51,79 @@ export default function ViewFilePaths() {
         fetchAudio();
     }, []);
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredData = audioData.filter(audio =>
+        audio.audio_name.toLowerCase().startsWith(searchTerm.toLowerCase())
+    );
+
     return (
-        //<>
-        //</><div>
-        //</>    <h1>User Audio Files</h1>
-        //</>    {audioData.length === 0 ? (
-        //</>        <p>No audio data found.</p>
-        //</>    ) : (
-        //</>        <ul>
-        //</>            {audioData.map((audio) => (
-        //</>                <li key={audio.track_id}>
-        //</>                    <p><strong>Name:</strong> {audio.audio_name}</p>
-        //</>                    <p><strong>Created At:</strong> {audio.created_at}</p>
-        //</>                    <p><strong>File Path:</strong> {audio.file_path}</p>
-        //</>                    <hr />
-        //</>                </li>
-        //</>            ))}
-        //</>        </ul>
-        //</>    )}
-        //</></div>
+        <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="w-full max-w-3xl p-6 bg-blue-700 rounded-2xl shadow-lg overflow-x-hidden">
+            {/* Search Bar */}
+        <div className="flex justify-start mb-2">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search audio name..."
+            className="w-=50 max-w-sm px-4 py-2 rounded-lg border border-gray-600 bg-blue-900 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-200"
+          />
+        </div>
         <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[150px] text-center font-bold">Name</TableHead>
-            <TableHead className="text-center font-bold">Path</TableHead>
-            <TableHead className="text-center font-bold">Time Created</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {audioData.map((audio) => (
-            <TableRow key={audio.track_id}>
-              <TableCell className="font-medium text-center">{audio.audio_name}</TableCell>
-              <TableCell className="text-center">{audio.file_path}</TableCell>
-              <TableCell className="text-center">{audio.created_at}</TableCell>
-            </TableRow>
+        <TableRow className="text-center transition duration-200 ease-in-out hover:bg-blue-600 hover:scale-[.97]">
+          {['Name', 'Path', 'Time Created'].map((header, i) => (
+            <TableHead
+            key={i}
+            className="text-center font-bold text-white px-4 py-2"
+          >
+            <div className="flex justify-center">
+              <span className="bg-blue-400 hover:bg-blue-300 text-white rounded-full px-4 py-1 transition-transform duration-300 ease-in-out hover:scale-110">
+                {header}
+              </span>
+            </div>
+          </TableHead>
           ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
+        </TableRow>
+      </TableHeader>
+        <TableBody>
+        <AnimatePresence>
+          {filteredData.map((audio) => (
+            <motion.tr
+            key={audio.track_id}
+            layout
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 0 }}
+            transition={{ duration: 0.15 }}
+            className="transition-all duration-200 ease-in-out hover:bg-blue-500 hover:scale-[.97]"
+          >
+            <TableCell className="text-center">
+              <span className="px-3 py-1 text-white ">
+                {audio.audio_name}
+              </span>
+            </TableCell>
+            <TableCell className="text-center">
+              <span className="px-3 py-1 text-white">
+                {audio.file_path}
+              </span>
+            </TableCell>
+            <TableCell className="text-center">
+              <span className="px-3 py-1 text-white">
+                {audio.created_at}
+              </span>
+            </TableCell>
+          </motion.tr>
+          ))}
+          <TableRow className="transition duration-200 ease-in-out hover:bg-blue-700 hover:scale-[.97]">
             <TableCell colSpan={3} className="w-[150px] text-center"></TableCell>
           </TableRow>
-        </TableFooter>
+          </AnimatePresence>
+        </TableBody>
       </Table>
+      </div>
+      </div>
       //</>
     );
 }

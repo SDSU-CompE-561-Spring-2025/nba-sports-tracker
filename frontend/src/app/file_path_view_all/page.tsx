@@ -101,6 +101,7 @@ export default function ViewFilePaths() {
   {/* Delete Button (only shown if a row is selected) */}
   {selectedTrackId !== null && (
   <button
+  style={{ fontSize: "1.5rem" }}
   ref={deleteButtonRef}
     onClick={async () => {
       const confirmed = window.confirm("Are you sure you want to delete this audio?");
@@ -124,7 +125,7 @@ export default function ViewFilePaths() {
         console.error("Delete failed:", err);
       }
     }}
-    className="ml-4 px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-500 transition"
+    className="ml-4 px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-500 transition duration-200 hover:scale-[1.05]"
   >
     Delete
   </button>
@@ -160,7 +161,7 @@ export default function ViewFilePaths() {
             transition={{ duration: 0.15 }}
             onClick={() => setSelectedTrackId(audio.track_id)}
             className={`transition-all duration-200 ease-in-out cursor-pointer ${
-              selectedTrackId === audio.track_id ? "bg-blue-300 scale-[.99]" : "hover:bg-blue-500 hover:scale-[.97]"
+              selectedTrackId === audio.track_id ? "bg-blue-300 scale-[.99] hover:scale-[.97]" : "hover:bg-blue-500 hover:scale-[.97]"
             }`}
             //className="transition-all duration-200 ease-in-out hover:bg-blue-500 hover:scale-[.97]"
           >

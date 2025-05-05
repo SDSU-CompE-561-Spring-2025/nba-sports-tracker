@@ -5,10 +5,12 @@ const navList = [
     {
         label: "Home",
         link: '/',
+        protected: true,
     },
     {
         label: "Dashboard",
         link: "/dashboard",
+        protected: true,
     },
     // {
     //     label: "File_Path_View_All",
@@ -17,6 +19,7 @@ const navList = [
     {
          label: "Listening_Page",
          link: '/listening_page',
+         protected: true,
     },
     // {
     //     label: "sign_in_sign_up",
@@ -42,6 +45,7 @@ function NavBar() {
     const pathname = usePathname();
     const { token } = useAuth();               // ② grab the JWT
   
+    const filteredNavList = navList.filter(item => !item.protected || token);
     // ③ if no token, render nothing
     if (!token) {
         return (
@@ -64,7 +68,7 @@ function NavBar() {
                 <Logo/>
                 {/*buttons after the logo */}
                 <div className={"flex h-full"}>
-                    {navList.map((item, index) => (
+                    {filteredNavList.map((item, index) => (
                         <NavbarItems
                             key={item.label}
                             link={item.link}

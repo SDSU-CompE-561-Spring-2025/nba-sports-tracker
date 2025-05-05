@@ -1,3 +1,4 @@
+
 // app/account_page/page.tsx
 import AccountForm from "./AccountForm";
 import { apiFetch } from "@/lib/api";
@@ -23,3 +24,4 @@ export default async function AccountPage() {
     </main>
   );
 }
+

@@ -8,7 +8,7 @@ const navList = [
     },
     {
         label: "Dashboard",
-        link: "/account_page",
+        link: "/dashboard",
     },
     // {
     //     label: "File_Path_View_All",

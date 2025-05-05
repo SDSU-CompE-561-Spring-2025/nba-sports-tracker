@@ -17,9 +17,15 @@ import { Button } from '@/components/ui/button';
 
 import { API_HOST_BASE_URL } from '@/lib/constants';
 
+import { useAuth } from '@/context/AuthContext'
+import { redirect } from 'next/navigation';
+
 
 
 export default function SignUpForm() {
+     const { token } = useAuth();               // ② grab the JWT
+        if (token) redirect("/dashboard"); // ③ if no token, render sign in/sign up page
+
     const formSchema = z.object({
           user_name: z.string().min(8, { message: "Username must be at least 8 characters" })
           .max(40, { message: "Username must be at most 64 characters" }),

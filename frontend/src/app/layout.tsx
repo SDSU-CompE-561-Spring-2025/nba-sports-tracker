@@ -4,6 +4,9 @@ import "./globals.css";
 import PageSelect from "@/components/PageSelect";
 
 import { AuthProvider } from '@/context/AuthContext';
+import { ThemeProvider } from "@/components/theme-provider";
+import NavBar from "@/components/NavBar";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

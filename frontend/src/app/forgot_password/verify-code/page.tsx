@@ -1,8 +1,8 @@
-"use client"
-import ChangePasswordForm from '@/components/ChangePasswordForm';
+"use-client"
+
+import VerifyCodeForm from '@/components/VerifyCodeForm';
 
 function ForgotPasswordPage() {
-
   return (
     <div className="
     flex flex-col items-center justify-center 
@@ -11,7 +11,7 @@ function ForgotPasswordPage() {
     "
     >
       <div className={"items-center w-75"}>
-        <ChangePasswordForm />
+        <VerifyCodeForm />
       </div>
 
     </div>

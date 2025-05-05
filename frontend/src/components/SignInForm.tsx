@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { login as apiLogin, type LoginData } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 const formSchema = z.object({
     username: z.string(),
@@ -29,6 +30,9 @@ type FormValues = z.infer<typeof formSchema>;
 
 
 export default function SignInForm() {
+    const { token } = useAuth();               // ② grab the JWT
+    if (token) redirect("/dashboard"); // ③ if no token, render sign in page
+
     // 1. Define your form.
     const router = useRouter();
     

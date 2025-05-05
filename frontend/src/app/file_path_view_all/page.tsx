@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion";
+import { useRef } from "react";
  
 export function InputDemo() {
   return <Input type="email" placeholder="Email" />
@@ -53,23 +54,82 @@ export default function ViewFilePaths() {
 
     const [searchTerm, setSearchTerm] = useState("");
 
+    const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
+
     const filteredData = audioData.filter(audio =>
         audio.audio_name.toLowerCase().startsWith(searchTerm.toLowerCase())
     );
+
+    const tableRef = useRef<HTMLDivElement | null>(null);
+    const deleteButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+          const target = event.target as Node;
+      
+          if (
+            tableRef.current &&
+            !tableRef.current.contains(target) &&
+            deleteButtonRef.current &&
+            !deleteButtonRef.current.contains(target)
+          ) {
+            setSelectedTrackId(null);
+          }
+        };
+      
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, []);
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <div className="w-full max-w-3xl p-6 bg-blue-700 rounded-2xl shadow-lg overflow-x-hidden">
             {/* Search Bar */}
-        <div className="flex justify-start mb-2">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search audio name..."
-            className="w-=50 max-w-sm px-4 py-2 rounded-lg border border-gray-600 bg-blue-900 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-200"
-          />
-        </div>
+            <div className="flex justify-between items-center mb-4">
+  {/* Search Input */}
+  <input
+    type="text"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    placeholder="Search audio name..."
+    className="w-full max-w-sm px-4 py-2 rounded-lg border border-gray-600 bg-blue-900 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-200"
+  />
+
+  {/* Delete Button (only shown if a row is selected) */}
+  {selectedTrackId !== null && (
+  <button
+  ref={deleteButtonRef}
+    onClick={async () => {
+      const confirmed = window.confirm("Are you sure you want to delete this audio?");
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/delete/${selectedTrackId}`, {
+          method: "DELETE",
+        });
+
+        const msg = await res.text(); // Your backend returns a text response
+        if (!res.ok) throw new Error(msg || "Failed to delete");
+
+        // Update state
+        setAudioData(prev => prev.filter(audio => audio.track_id !== selectedTrackId));
+        setSelectedTrackId(null);
+
+        alert(msg); // optional: show success message
+      } catch (err: any) {
+        alert("Error: " + (err.message || "Unknown error deleting audio"));
+        console.error("Delete failed:", err);
+      }
+    }}
+    className="ml-4 px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-500 transition"
+  >
+    Delete
+  </button>
+)}
+</div>
+    <div ref={tableRef}>
         <Table>
         <TableHeader>
         <TableRow className="text-center transition duration-200 ease-in-out hover:bg-blue-600 hover:scale-[.97]">
@@ -97,7 +157,11 @@ export default function ViewFilePaths() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 0 }}
             transition={{ duration: 0.15 }}
-            className="transition-all duration-200 ease-in-out hover:bg-blue-500 hover:scale-[.97]"
+            onClick={() => setSelectedTrackId(audio.track_id)}
+            className={`transition-all duration-200 ease-in-out cursor-pointer ${
+              selectedTrackId === audio.track_id ? "bg-blue-300 scale-[.99]" : "hover:bg-blue-500 hover:scale-[.97]"
+            }`}
+            //className="transition-all duration-200 ease-in-out hover:bg-blue-500 hover:scale-[.97]"
           >
             <TableCell className="text-center">
               <span className="px-3 py-1 text-white ">
@@ -122,6 +186,7 @@ export default function ViewFilePaths() {
           </AnimatePresence>
         </TableBody>
       </Table>
+      </div>
       </div>
       </div>
       //</>

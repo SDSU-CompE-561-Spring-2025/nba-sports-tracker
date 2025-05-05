@@ -44,6 +44,7 @@ dependencies = [
   "pre-commit>=4.1.0",
   "pytest>=8.3.5",
   "httpx>=0.28.1",
+  "hatch>=1.14.1",
 ]
 
 [project.urls]

@@ -14,10 +14,10 @@ const navList = [
     //     label: "File_Path_View_All",
     //     link: '/file_path_view_all',
     // },
-    // {
-    //     label: "Listning_Page",
-    //     link: '/listening_page',
-    // },
+    {
+         label: "Listening_Page",
+         link: '/listening_page',
+    },
     // {
     //     label: "sign_in_sign_up",
     //     link: '/sign_in_sign_up',

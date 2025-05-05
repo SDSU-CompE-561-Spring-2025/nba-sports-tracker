@@ -31,7 +31,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function SignInForm() {
     const { token } = useAuth();               // ② grab the JWT
-    if (token) redirect("/dashboard"); // ③ if no token, render sign in page
+    if (token) (
+        console.log("Success") // ① if token, redirect to dashboard
+        //redirect("/dashboard"); // ③ if no token, render sign in page
+    )
 
     // 1. Define your form.
     const router = useRouter();

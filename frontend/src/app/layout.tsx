@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PageSelect from "@/components/PageSelect";
+import { Toaster } from "@/components/ui/use-toast"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
       >
     <h1><PageSelect/></h1>
             {children}
+            <Toaster />
         <footer>Footer</footer>
       </body>
     </html>

@@ -87,8 +87,8 @@ def verify_user(user_id: int, verification_code: str, db: Session = Depends(get_
     
 
 @router.put("/user/verify/newcoderequest/{user_id}")
-def request_new_verification_code(user_id: int, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+def request_new_verification_code(user_id: str, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
     

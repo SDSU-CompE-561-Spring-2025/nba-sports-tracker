@@ -5,10 +5,11 @@ import "./globals.css";
 import PageSelect from "@/components/PageSelect";
 import { Toaster } from "@/components/ui/use-toast"
 
-import { AuthProvider } from '@/context/AuthContext';
-import { ThemeProvider } from "@/components/theme-provider";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
+import { ThemeProvider } from "@/components/theme-provider";
+
+import { AuthProvider } from '@/context/AuthContext';
 
 
 const geistSans = Geist({
@@ -32,9 +33,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased text-center text-5xl`}
       >
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <AuthProvider>

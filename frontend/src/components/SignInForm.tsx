@@ -19,23 +19,20 @@ import { toast } from 'sonner';
 import { login as apiLogin, type LoginData } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 const formSchema = z.object({
-  username: z.string().min(8, { message: "Username must be at least 8 characters" })
-  .max(40, { message: "Username must be at most 64 characters" }),
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" })
-    .max(64, { message: "Password must be at most 64 characters" })
-    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-    .regex(/[0-9]/, { message: "Password must contain at least one number" })
-    .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
+    username: z.string(),
+    password: z.string()
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 
 export default function SignInForm() {
+    const { token } = useAuth();               // ② grab the JWT
+    if (token) redirect("/dashboard"); // ③ if no token, render sign in page
+
     // 1. Define your form.
     const router = useRouter();
     

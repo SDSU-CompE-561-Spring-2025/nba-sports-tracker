@@ -17,20 +17,25 @@ import { Button } from '@/components/ui/button';
 
 import { API_HOST_BASE_URL } from '@/lib/constants';
 
+import { useAuth } from '@/context/AuthContext'
+import { redirect } from 'next/navigation';
+
 
 
 export default function SignUpForm() {
+     const { token } = useAuth();               // ② grab the JWT
+        if (token) redirect("/dashboard"); // ③ if no token, render sign in/sign up page
+
     const formSchema = z.object({
-        user_name: z.string().min(3, {
-            message: 'Username must be at least 3 characters.',
-        }),
-        password: z.string().min(6, {
-            message: 'Password must be at least 6 characters.',
-        }),
-        email: z.string().email({
-            message: 'Invalid email address.',
-        }),
-    
+          user_name: z.string().min(8, { message: "Username must be at least 8 characters" })
+          .max(40, { message: "Username must be at most 64 characters" }),
+          email: z.string().email({ message: "Invalid email address" }),
+          password: z.string().min(8, { message: "Password must be at least 8 characters" })
+            .max(64, { message: "Password must be at most 64 characters" })
+            .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+            .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+            .regex(/[0-9]/, { message: "Password must contain at least one number" })
+            .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
     });
 
     // 1. Define your form.

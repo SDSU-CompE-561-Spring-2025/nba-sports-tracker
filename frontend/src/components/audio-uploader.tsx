@@ -1,131 +1,106 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { toast } from "@/components/ui/use-toast"
-import { Toaster } from "@/components/ui/toaster"
-import { Upload, X, Play, Pause, Volume2 } from "lucide-react"
-import { upload } from "@vercel/blob/client"
-import { cn } from "@/lib/utils"
+import React, { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "@/components/ui/use-toastUpload";
+import { Upload, X, Play, Pause, Volume2 } from "lucide-react";
+import { upload } from "@vercel/blob/client";
+import { cn } from "@/lib/utils";
 
 export function AudioUploader() {
-  const [file, setFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [audioUrl, setAudioUrl] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Check if file is an audio file
       if (!selectedFile.type.startsWith("audio/")) {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload an audio file (MP3, WAV, OGG)",
-          variant: "destructive",
-        })
-        return
+        toast("Invalid file type. Please upload an audio file (MP3, WAV, OGG).");
+        return;
       }
 
-      setFile(selectedFile)
-
-      // Create a local URL for the file for preview
-      const localUrl = URL.createObjectURL(selectedFile)
-      setAudioUrl(localUrl)
+      setFile(selectedFile);
+      const localUrl = URL.createObjectURL(selectedFile);
+      setAudioUrl(localUrl);
     }
-  }
+  };
 
   const handleUpload = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setIsUploading(true)
-    setUploadProgress(0)
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 95) {
-            clearInterval(progressInterval)
-            return 95
+            clearInterval(progressInterval);
+            return 95;
           }
-          return prev + 5
-        })
-      }, 300)
+          return prev + 5;
+        });
+      }, 300);
 
-      // Upload to Vercel Blob
       const blob = await upload(file.name, file, {
         access: "public",
         handleUploadUrl: "/api/upload-audio",
-        onProgress: (progress) => {
-          // This won't work locally, but would work in production
-          console.log(`Upload progress: ${progress}%`)
-        },
-      })
+      });
 
-      clearInterval(progressInterval)
-      setUploadProgress(100)
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setAudioUrl(blob.url);
 
-      // Update the audio URL to the permanent one
-      setAudioUrl(blob.url)
-
-      toast({
-        title: "Upload successful",
-        description: "Your audio file has been uploaded.",
-      })
+      toast("Upload successful! Your audio file has been uploaded.");
     } catch (error) {
-      console.error("Upload failed:", error)
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your file. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Upload failed:", error);
+      toast("Upload failed. There was an error uploading your file. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleRemoveFile = () => {
-    setFile(null)
-    setAudioUrl(null)
-    setIsPlaying(false)
+    setFile(null);
+    setAudioUrl(null);
+    setIsPlaying(false);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
     if (audioRef.current) {
-      audioRef.current.pause()
+      audioRef.current.pause();
     }
-  }
+  };
 
   const togglePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.pause()
+        audioRef.current.pause();
       } else {
-        audioRef.current.play()
+        audioRef.current.play();
       }
-      setIsPlaying(!isPlaying)
+      setIsPlaying(!isPlaying);
     }
-  }
+  };
 
   return (
     <>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-center">Audio Uploader</CardTitle>
+          <CardTitle className="text-center">Audio File Uploader</CardTitle>
         </CardHeader>
         <CardContent>
           <div
             className={cn(
               "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-4",
-              file ? "border-slate-300 bg-slate-50" : "border-slate-200 hover:border-slate-300",
+              file ? "border-slate-300 bg-slate-50" : "border-slate-200 hover:border-slate-300"
             )}
           >
             {!file ? (
@@ -200,7 +175,6 @@ export function AudioUploader() {
           </Button>
         </CardFooter>
       </Card>
-      <Toaster />
     </>
-  )
+  );
 }

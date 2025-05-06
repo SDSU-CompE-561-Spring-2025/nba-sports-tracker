@@ -43,7 +43,7 @@ function VerifyUserForm() {
 
   return (
     <Form {...form}>
-    <h2>Forgot Password Step 1 of 3</h2>
+    <h2 className='text-sm'>Forgot Password Step 1 of 3</h2>
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4 w-full justify-center">
       <FormField
         control={form.control}

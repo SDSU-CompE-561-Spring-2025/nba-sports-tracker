@@ -19,11 +19,13 @@ import { toast } from 'sonner';
 import { login as apiLogin, type LoginData } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { redirect } from "next/navigation";
 
 const formSchema = z.object({
-    username: z.string(),
-    password: z.string()
+  username: z.string().min(8, { message: "Username must be at least 8 characters" })
+  .max(40, { message: "Username must be at most 64 characters" }),
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" })
+    .max(64, { message: "Password must be at most 64 characters" })
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -56,6 +58,7 @@ export default function SignInForm() {
     
           toast.success('Welcome back!')
           router.replace('/')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           toast.error(err.message || 'Login failed')
         }
@@ -103,7 +106,7 @@ export default function SignInForm() {
                     )}
                 />
                 <Button variant={"outline"} type={"submit"} className={"mt-5"}>
-                    Submit
+                    Sign In
                 </Button>
             </form>
         </Form>

@@ -6,7 +6,6 @@ import { z } from 'zod';
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -61,9 +60,6 @@ export default function SignUpForm() {
             });
     
             if (response.ok) {
-                // const result = await response.json();
-                // toast('Everything went wrong');
-                // localStorage.setItem('accessToken', result.access_token);
     
                 setTimeout(() => {
                     window.location.href = '/';

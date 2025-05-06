@@ -39,7 +39,7 @@ export default function AudioFilesList({ files }: Props) {
     try {
       await apiFetch(`/auth/audio/update/${audioId}`, {
         method: "PUT",
-        body: JSON.stringify({ newName: file.name, newPath: file.path }),
+        body: JSON.stringify({ audio_name: file.name, file_path: file.path }),
       });
       toast("File updated");
       setEditingId(null);

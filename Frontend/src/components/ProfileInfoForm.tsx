@@ -36,9 +36,13 @@ export default function ProfileInfoForm({ userId, initialUsername, initialEmail 
     const handleSave = async () => {
       setLoading(true);
       try {
-        await apiFetch(`/auth/user/update/${userId}`, {
+        await apiFetch(`/auth/user/update/username/${userId}`, {
           method: "PUT",
-          body: JSON.stringify({ username, email }),
+          body: JSON.stringify({ user_name: username }),
+        });
+        await apiFetch(`/auth/user/update/email/${userId}`, {
+          method: "PUT",
+          body: JSON.stringify({ email: email }),
         });
         toast("Profile updated");
         setEditing(false);

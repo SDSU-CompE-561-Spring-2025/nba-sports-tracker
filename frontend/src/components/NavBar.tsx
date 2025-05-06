@@ -13,11 +13,11 @@ const navList = [
         protected: true,
     },
     {
-        label: "File_Path_View_All",
+        label: "File Path View All",
         link: '/file_path_view_all',
     },
     {
-         label: "Listening_Page",
+         label: "Listening Page",
          link: '/listening_page',
          protected: true,
     },

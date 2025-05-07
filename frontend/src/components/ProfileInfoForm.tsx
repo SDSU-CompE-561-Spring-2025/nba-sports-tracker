@@ -60,26 +60,37 @@ export default function ProfileInfoForm({ userId, initialUsername, initialEmail 
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Username</Label>
-            {editing ? (
-              <Input value={username} onChange={e => setUsername(e.target.value)} />
-            ) : (
-              <p className="mt-1 text-gray-700">{username}</p>
-            )}
+            <Label className="text-sm text-gray-400">Username</Label>
+            <Input
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              disabled={!editing}
+              className="text-base"
+            />
           </div>
           <div>
-            <Label>Email</Label>
-            {editing ? (
-              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} />
-            ) : (
-              <p className="mt-1 text-gray-700">{email}</p>
-            )}
+            <Label className="text-sm text-gray-400">Email</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              disabled={!editing}
+              className="text-base"
+            />
           </div>
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
           {editing ? (
             <>
-              <Button variant="secondary" onClick={() => { setUsername(initialUsername); setEmail(initialEmail); setEditing(false); }} disabled={loading}>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setUsername(initialUsername);
+                  setEmail(initialEmail);
+                  setEditing(false);
+                }}
+                disabled={loading}
+              >
                 Cancel
               </Button>
               <Button onClick={handleSave} disabled={loading}>
@@ -87,12 +98,9 @@ export default function ProfileInfoForm({ userId, initialUsername, initialEmail 
               </Button>
             </>
           ) : (
-            <Button onClick={() => setEditing(true)}>
-              Edit
-            </Button>
+            <Button onClick={() => setEditing(true)}>Edit</Button>
           )}
         </CardFooter>
       </Card>
     );
   }
-  

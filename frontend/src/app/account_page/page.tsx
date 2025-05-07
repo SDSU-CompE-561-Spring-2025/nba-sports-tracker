@@ -16,7 +16,7 @@ interface AudioFile {
 
 interface User {
   id: number;
-  username: string;
+  user_name: string;
   email: string;
 }
 
@@ -39,7 +39,7 @@ export default async function AccountPage() {
     <main className="p-4 max-w-2xl mx-auto space-y-8">
       <ProfileInfoForm
         userId={user.id}
-        initialUsername={user.username}
+        initialUsername={user.user_name}
         initialEmail={user.email}
       />
       {/* now `files` is AudioFile[] */}

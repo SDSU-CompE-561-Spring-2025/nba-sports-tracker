@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import UserButton from "@/components/UserButton";
-import { Home, LayoutDashboard, FolderOpen, Headphones, UploadCloud, User } from "lucide-react";
+import { Home, LayoutDashboard, Headphones, UploadCloud, User } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 const navList = [
   {
@@ -18,15 +18,9 @@ const navList = [
   },
   {
     label: "Dashboard",
-    link: "/dashboard",
+    link: "/file_path_view_all", // Dashboard now points to File Path View All
     protected: true,
     icon: LayoutDashboard,
-  },
-  {
-    label: "File Path View All",
-    link: "/file_path_view_all",
-    protected: false,
-    icon: FolderOpen,
   },
   {
     label: "Listening Page",
@@ -54,7 +48,7 @@ const navList = [
 
 function NavBar() {
   const pathname = usePathname();
-  const { token } = useAuth(); // Grab the JWT
+  const { token, logout } = useAuth(); // Grab the JWT and logout function
 
   // Filter navigation items based on authentication
   const filteredNavList = navList.filter((item) => !item.protected || token);
@@ -87,9 +81,31 @@ function NavBar() {
           {/* Right Section: Actions */}
           <div className="flex items-center gap-2">
             <ThemeSwitcherButton />
-            <Link href="/account_page" className="flex items-center justify-center h-full aspect-square p-0 rounded-none">
-              <User className="h-6 w-6 text-muted-foreground hover:text-foreground" />
-            </Link>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button className="flex items-center justify-center h-full aspect-square p-0 rounded-none">
+                  <User className="h-6 w-6 text-muted-foreground hover:text-foreground" />
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content
+                className="bg-white shadow-md rounded-md p-2 w-40"
+                align="end"
+                sideOffset={5}
+              >
+                <DropdownMenu.Item
+                  className="block px-4 py-2 text-sm text-muted-foreground cursor-default"
+                >
+                  View Account
+                </DropdownMenu.Item>
+                <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
+                <DropdownMenu.Item
+                  onClick={logout}
+                  className="block px-4 py-2 text-sm text-muted-foreground hover:bg-gray-100 hover:text-foreground rounded-md cursor-pointer"
+                >
+                  Logout
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
           </div>
         </nav>
       </div>

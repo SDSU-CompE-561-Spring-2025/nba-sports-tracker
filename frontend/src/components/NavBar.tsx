@@ -92,10 +92,13 @@ function NavBar() {
                 align="end"
                 sideOffset={5}
               >
-                <DropdownMenu.Item
-                  className="block px-4 py-2 text-sm text-muted-foreground cursor-default"
-                >
-                  View Account
+                <DropdownMenu.Item asChild>
+                  <Link
+                    href="/account_page"
+                    className="block px-4 py-2 text-sm text-muted-foreground hover:bg-gray-100 hover:text-foreground rounded-md"
+                  >
+                    View Account
+                  </Link>
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
                 <DropdownMenu.Item
@@ -140,7 +143,7 @@ function NavbarItem({ link, label, icon: Icon, clickCallBack }: NavbarItemProps)
       href={link}
       className={cn(
         "relative px-3 py-2 text-sm font-medium transition-colors hover:text-foreground flex items-center gap-2 rounded-md",
-        isActive ? "text-amber-500" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        isActive ? "text-red-600" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       )}
       onClick={() => {
         if (clickCallBack) clickCallBack();
@@ -148,7 +151,7 @@ function NavbarItem({ link, label, icon: Icon, clickCallBack }: NavbarItemProps)
     >
       {Icon && <Icon className="h-4 w-4" />}
       {label}
-      {isActive && <span className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-amber-500" />}
+      {isActive && <span className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-red-600" />}
     </Link>
   );
 }

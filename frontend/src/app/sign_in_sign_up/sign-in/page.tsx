@@ -41,7 +41,7 @@ export default function SignInPage() {
                 <p className={"text-sm leading-none m-0"}>New to The Audio Hub?</p>
                 <Button variant={"outline"} className="">
                     <Link
-                        href="/"
+                        href="/sign_in_sign_up/sign-up"
                         className="
                                 flex              
                                 items-center       

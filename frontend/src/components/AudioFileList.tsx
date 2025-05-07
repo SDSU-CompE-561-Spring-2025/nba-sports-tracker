@@ -54,24 +54,63 @@ export default function AudioFilesList({ files }: Props) {
         <h2 className="text-xl font-semibold">Saved Audio Files</h2>
       </CardHeader>
       <CardContent className="space-y-4">
+        {list.length > 0 && (
+          <div className="flex items-center space-x-2 px-4">
+            <div className="w-8 text-base font-semibold text-gray-300">#</div>
+            <div className="w-1/3 text-base font-semibold text-gray-300">Audio Name</div>
+            <div className="flex-1 text-base font-semibold text-gray-300">Filepath</div>
+            <div className="w-32" />
+          </div>
+        )}
         {list.length === 0 ? (
           <p>No saved files yet.</p>
         ) : (
-          list.map(file => (
-            <div key={file.id} className="flex space-x-2 items-center">
+          list.map((file, idx) => (
+            <div key={file.id} className="flex items-center space-x-2">
+              <div className="w-8 text-base text-gray-100">{idx + 1}</div>
+              <Input
+                value={file.name}
+                onChange={e => {
+                  const newName = e.currentTarget.value;
+                  setList(prev =>
+                    prev.map(f =>
+                      f.id === file.id ? { ...f, name: newName } : f
+                    )
+                  );
+                }}
+                disabled={editingId !== file.id}
+                className="w-1/3 text-base"
+              />
+              <Input
+                value={file.path}
+                onChange={e => {
+                  const newPath = e.currentTarget.value;
+                  setList(prev =>
+                    prev.map(f =>
+                      f.id === file.id ? { ...f, path: newPath } : f
+                    )
+                  );
+                }}
+                disabled={editingId !== file.id}
+                className="flex-1 text-base"
+              />
               {editingId === file.id ? (
                 <>
-                  <Input value={file.name} onChange={e => setList(prev => prev.map(f => f.id === file.id ? { ...f, name: e.target.value } : f))} className="w-1/3" />
-                  <Input value={file.path} onChange={e => setList(prev => prev.map(f => f.id === file.id ? { ...f, path: e.target.value } : f))} className="flex-1" />
-                  <Button size="sm" onClick={() => handleSave(file.id)}>Save</Button>
-                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>Cancel</Button>
+                  <Button size="sm" onClick={() => handleSave(file.id)}>
+                    Save
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
                 </>
               ) : (
                 <>
-                  <span className="w-1/3 font-medium">{file.name}</span>
-                  <span className="flex-1 text-sm text-muted-foreground">{file.path}</span>
-                  <Button size="sm" onClick={() => setEditingId(file.id)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(file.id)}>Delete</Button>
+                  <Button size="sm" onClick={() => setEditingId(file.id)}>
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(file.id)}>
+                    Delete
+                  </Button>
                 </>
               )}
             </div>

@@ -22,8 +22,8 @@ export default function SignInPage() {
                         height={80}
                         className="h-20 w-20 object-contain"
                     />
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
-                        Welcome to The Audio Hub
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent">
+                    Welcome to The Audio Hub
                     </h1>
                 </Link>
                 <p className="text-lg text-muted-foreground mt-2">

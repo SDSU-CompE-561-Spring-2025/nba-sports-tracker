@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import UserButton from "@/components/UserButton";
-import { Home, LayoutDashboard, FolderOpen, Headphones } from "lucide-react";
+import { Home, LayoutDashboard, FolderOpen, Headphones, UploadCloud, User } from "lucide-react";
 
 const navList = [
   {
@@ -33,6 +33,12 @@ const navList = [
     link: "/listening_page",
     protected: true,
     icon: Headphones,
+  },
+  {
+    label: "Upload File Path",
+    link: "/uploading_file_path",
+    protected: false,
+    icon: UploadCloud,
   },
   {
     label: "About",
@@ -81,8 +87,8 @@ function NavBar() {
           {/* Right Section: Actions */}
           <div className="flex items-center gap-2">
             <ThemeSwitcherButton />
-            <Link href="/" className="flex items-center justify-center h-full aspect-square p-0 rounded-none">
-              <UserButton />
+            <Link href="/account_page" className="flex items-center justify-center h-full aspect-square p-0 rounded-none">
+              <User className="h-6 w-6 text-muted-foreground hover:text-foreground" />
             </Link>
           </div>
         </nav>

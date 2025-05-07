@@ -15,11 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion";
 import { useRef } from "react";
- 
+
 export function InputDemo() {
   return <Input type="email" placeholder="Email" />
 }
-
 
 type AudioRecord = {
     track_id: number;
@@ -32,14 +31,29 @@ type AudioRecord = {
 export default function ViewFilePaths() {
     const [audioData, setAudioData] = useState<AudioRecord[]>([]);
 
-    const [userId, setUserId] = useState<number>(1);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
+
+    const tableRef = useRef<HTMLDivElement | null>(null);
+    const deleteButtonRef = useRef<HTMLButtonElement | null>(null);
 
     useEffect(() => {
-        if (!userId) return;
-
         const fetchAudio = async () => {
             try {
-                const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios/${userId}`);
+                // Retrieve the token (e.g., from local storage)
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
+                    console.error("No token found");
+                    return;
+                }
+
+                // Fetch audio data using the token
+                const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios`, {
+                    headers: {
+                        token: token, // Send only the token
+                    },
+                });
                 if (!res.ok) throw new Error("Failed to fetch");
 
                 const data = await res.json();
@@ -52,16 +66,9 @@ export default function ViewFilePaths() {
         fetchAudio();
     }, []);
 
-    const [searchTerm, setSearchTerm] = useState("");
-
-    const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
-
     const filteredData = audioData.filter(audio =>
         audio.audio_name.toLowerCase().startsWith(searchTerm.toLowerCase())
     );
-
-    const tableRef = useRef<HTMLDivElement | null>(null);
-    const deleteButtonRef = useRef<HTMLButtonElement | null>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -108,8 +115,17 @@ export default function ViewFilePaths() {
       if (!confirmed) return;
 
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+
         const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/delete/${selectedTrackId}`, {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         const msg = await res.text(); // Your backend returns a text response

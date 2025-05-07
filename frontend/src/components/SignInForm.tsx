@@ -46,7 +46,7 @@ export default function SignInForm() {
             toast.success("Welcome back!");
 
             // Redirect to the dashboard
-            router.push("/dashboard");
+            router.push("/file_path_view_all");
         } catch (err: any) {
             // Show an error message
             toast.error(err.message || "Login failed");

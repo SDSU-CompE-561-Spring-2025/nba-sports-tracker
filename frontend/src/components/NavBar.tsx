@@ -13,7 +13,7 @@ const navList = [
   {
     label: "Home",
     link: "/",
-    protected: true,
+    protected: false,
     icon: Home,
   },
   {
@@ -25,6 +25,7 @@ const navList = [
   {
     label: "File Path View All",
     link: "/file_path_view_all",
+    protected: false,
     icon: FolderOpen,
   },
   {
@@ -33,38 +34,24 @@ const navList = [
     protected: true,
     icon: Headphones,
   },
+  {
+    label: "About",
+    link: "#", // Not clickable
+    protected: false,
+  },
+  {
+    label: "Support",
+    link: "#", // Not clickable
+    protected: false,
+  },
 ];
 
 function NavBar() {
   const pathname = usePathname();
   const { token } = useAuth(); // Grab the JWT
 
+  // Filter navigation items based on authentication
   const filteredNavList = navList.filter((item) => !item.protected || token);
-
-  if (!token) {
-    return (
-      <div className="w-full py-8 bg-background">
-        <div className="container mx-auto px-4 text-center space-y-6">
-          <Link href="/" className="inline-flex items-center justify-center gap-3">
-            <Image
-              src="/logoAudioHub.png"
-              alt="Audio Hub Logo"
-              width={80}
-              height={80}
-              className="h-16 w-16 object-contain"
-            />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-amber-600 bg-clip-text text-transparent">
-              The Audio Hub
-            </h1>
-          </Link>
-
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Paste, manage and play your audio file paths in one place.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -85,7 +72,7 @@ function NavBar() {
           </div>
 
           {/* Navigation Items - Desktop */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-4">
             {filteredNavList.map((item) => (
               <NavbarItem key={item.label} link={item.link} label={item.label} icon={item.icon} />
             ))}
@@ -94,7 +81,9 @@ function NavBar() {
           {/* Right Section: Actions */}
           <div className="flex items-center gap-2">
             <ThemeSwitcherButton />
-            <UserButton />
+            <Link href="/" className="flex items-center justify-center h-full aspect-square p-0 rounded-none">
+              <UserButton />
+            </Link>
           </div>
         </nav>
       </div>

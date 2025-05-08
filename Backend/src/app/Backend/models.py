@@ -1,4 +1,5 @@
 #External Imports
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, LargeBinary
 from sqlalchemy.sql import func
 
@@ -18,7 +19,7 @@ class DBUsers(Base):
 
     is_verified = Column(Boolean, default=True)
     verification_code = Column(String, nullable=True)
-    verification_code_expiry = Column(DateTime(timezone=True), nullable=True)
+    verification_code_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
     # Expiration time for verification code
 
 #Audio DB Model

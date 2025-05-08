@@ -1,7 +1,7 @@
 #External Imports
 from io import BytesIO
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Header
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -80,8 +80,8 @@ async def verify_user(verification_code: str, token: str = Header(...), db: Asyn
     
     if (selected_user.verification_code == str(verification_code)):
         # Check if the verification code is expired
-        TimeExpiryVerification = str(datetime.now(timezone.utc))
-        if (TimeExpiryVerification < selected_user.verification_code_expiry):
+        current_time = datetime.now(timezone.utc)
+        if (current_time < selected_user.verification_code_expiry):
             # Verification code is valid and not expired
             selected_user.is_verified = True
             await db.commit()

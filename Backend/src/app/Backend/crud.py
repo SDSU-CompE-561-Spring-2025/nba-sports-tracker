@@ -348,19 +348,9 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/user/exists")
-def check_user_exists(token: str = Header(...), db: Session = Depends(get_db)):
-    # Decode the token to get the username
-    try:
-        token_data = decode_access_token(token)
-    except Exception as e:
-        return {"exists": False}
-    if not token_data:
-        return {"exists": False}
-    
-    user_id = token_data.username
-
+def check_user_exists(username: str, db: Session = Depends(get_db)):
     # Query the database to check if the user exists
-    user_exists = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+    user_exists = db.query(DBUsers).filter(DBUsers.user_name == username).first()
     
     # Return true if the user exists, otherwise false
     return {"exists": bool(user_exists)}

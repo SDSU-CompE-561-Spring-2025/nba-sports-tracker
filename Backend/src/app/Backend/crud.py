@@ -202,21 +202,18 @@ def update_username(up_user: UpdateUserName, token: str = Header(...), db: Sessi
     return selected_user.user_name
 
 
-@router.put("/user/update/password")
-def update_password(up_user: UpdatePassword, token: str = Header(...), db: Session = Depends(get_db)):
-    token_data = decode_access_token(token)
-    user_id = token_data.username
-
-    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+@router.put("/user/update/password/{user_id}")
+def update_password(user_id: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    selected_user.password_hash = pwd_context.hash(up_user.password)
+    selected_user.password = pwd_context.hash(up_user.password)
 
     db.commit()
     db.refresh(selected_user)
 
-    return {"detail": f"Password updated for {selected_user.user_name}"}
+    return "Password updated for " + selected_user.user_name
 
 
 @router.put("/user/update/email")

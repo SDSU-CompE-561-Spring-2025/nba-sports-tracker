@@ -1,10 +1,14 @@
+// app/account_page/page.tsx
+"use client";
+
+import { useState, useEffect } from "react";
 import ProfileInfoForm from "@/components/ProfileInfoForm";
-import AudioFilesList   from "@/components/AudioFileList";
-import { apiFetch }     from "@/lib/api";
+import AudioFilesList  from "@/components/AudioFileList";
+import { apiFetch }    from "@/lib/api";
 
 type RawAudio = {
-  track_id: number;
-  file_path: string;
+  track_id:   number;
+  file_path:  string;
   audio_name: string;
 };
 
@@ -15,25 +19,56 @@ interface AudioFile {
 }
 
 interface User {
-  id: number;
+  id:        number;
   user_name: string;
-  email: string;
+  email:     string;
 }
 
-export default async function AccountPage() {
-  const userId = 5;
-  
-  // fetch the user and the typed audio‐file objects in parallel
-  const [ user, rawFiles ] = await Promise.all([
-    apiFetch<User>(`/auth/user/${userId}`),
-    apiFetch<RawAudio[]>(`/auth/audio/get_audios/${userId}`)
-  ]);
+export default function AccountPage() {
+  const [user, setUser]     = useState<User | null>(null);
+  const [files, setFiles]   = useState<AudioFile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const files: AudioFile[] = rawFiles.map(r => ({
-    id:   r.track_id,
-    path: r.file_path,
-    name: r.audio_name,
-  }));
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("No token found");
+      setLoading(false);
+      return;
+    }
+
+    Promise.all([
+      apiFetch<User>("/auth/user/", {
+        headers: { token },
+      }),
+      apiFetch<RawAudio[]>("/auth/audio/get_audios/", {
+        headers: { token },
+      }),
+    ])
+      .then(([u, raw]) => {
+        setUser(u);
+        setFiles(
+          raw.map((r) => ({
+            id:   r.track_id,
+            path: r.file_path,
+            name: r.audio_name,
+          }))
+        );
+      })
+      .catch((err) => {
+        console.error("Failed to fetch account data:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <p className="text-center p-4">Loading account…</p>;
+  }
+  if (!user) {
+    return <p className="text-center p-4 text-destructive">Not signed in.</p>;
+  }
 
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-8">
@@ -42,7 +77,6 @@ export default async function AccountPage() {
         initialUsername={user.user_name}
         initialEmail={user.email}
       />
-      {/* now `files` is AudioFile[] */}
       <AudioFilesList files={files} />
     </main>
   );

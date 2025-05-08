@@ -1,5 +1,5 @@
 #External Imports
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header  # Import Header to accept Authorization header
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, constr, EmailStr, Field, FilePath
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
@@ -14,7 +14,7 @@ from datetime import timezone
 #Imports from other files
 from app.Backend.models import DBUsers, DBAudio
 from app.Backend.schemas import A_Route_Inputs, Return_A_Route, UserCreateInput, UpdateUserName, UpdateEmail, UpdatePassword, ConfirmUser, AudioCreateInput
-from app.Backend.auth import create_access_token, generate_verification_code, send_verification_email
+from app.Backend.auth import create_access_token, generate_verification_code, send_verification_email, decode_access_token
 from app.core.config import settings
 from app.schemas.token import Token
 from app.Backend.database import Base, get_db
@@ -65,80 +65,82 @@ def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     db.refresh(user_save)
     return user_save
 
-@router.put("/user/verify/{user_id}")
-def verify_user(user_id: int, verification_code: str, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+@router.put("/user/verify")
+def verify_user(verification_code: str, token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username  # Assuming the username is stored as the user ID in the token
+
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    if (selected_user.verification_code == str(verification_code)):
-        # Check if the verification code is expired
-        TimeExpiryVerification = str(datetime.now(timezone.utc))
-        if (TimeExpiryVerification < selected_user.verification_code_expiry):
-            # Verification code is valid and not expired
+    if selected_user.verification_code == str(verification_code):
+        if datetime.now(timezone.utc) < selected_user.verification_code_expiry:
             selected_user.is_verified = True
             db.commit()
             db.refresh(selected_user)
             return selected_user
-        else: 
+        else:
             raise HTTPException(status_code=400, detail="Verification code expired, please request a new one")
     else:
         raise HTTPException(status_code=400, detail="Invalid verification code")
-    
 
-@router.put("/user/verify/newcoderequest/{user_id}")
-def request_new_verification_code(user_id: str, db: Session = Depends(get_db)):
+
+@router.put("/user/verify/newcoderequest")
+def request_new_verification_code(token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
     selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
     
     if selected_user.is_verified:
         raise HTTPException(status_code=400, detail="User already verified")
-    # Generate verification code
-    verification_code = generate_verification_code()
     
-    selected_user.verification_code=verification_code
-    selected_user.verification_code_expiry=datetime.now(timezone.utc) + timedelta(minutes=10)  # Set expiration time to 10 minutes from now
+    verification_code = generate_verification_code()
+    selected_user.verification_code = verification_code
+    selected_user.verification_code_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
 
     send_verification_email(selected_user.email, verification_code)
 
     db.commit()
     db.refresh(selected_user)
     
-    return HTTPException(status_code=200, detail="New verification code sent to email")
+    return {"detail": "New verification code sent to email"}
 
-@router.get("/user/{user_id}")
-def get_user_by_username(user_id: int, db: Session = Depends(get_db)):
-    sample_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+
+@router.get("/user")
+def get_user_by_token(token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    sample_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not sample_user:
         raise HTTPException(status_code=404, detail="User not found")
     return sample_user
 
-@router.get("/audio/temp_view/{user_id}")
-def get_user_by_username(user_id: int, db: Session = Depends(get_db)):
-    sample_user = db.query(DBAudio).filter(DBAudio.user_id == user_id).first()
-    if not sample_user:
-        raise HTTPException(status_code=404, detail="No Audio")
-    return sample_user
 
-@router.put("/user/update/{user_id}")
-def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+@router.put("/user/update")
+def update_user_info(up_user: UserCreateInput, token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 
     existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name).first()
-    if existing_user and existing_user.id != user_id:
-
+    if existing_user and existing_user.id != selected_user.id:
         raise HTTPException(status_code=400, detail="Username already taken")
 
     existing_email = db.query(DBUsers).filter(DBUsers.email == up_user.email).first()
-    if existing_email and existing_user.id != user_id:
+    if existing_email and existing_email.id != selected_user.id:
         raise HTTPException(status_code=400, detail="Email already taken")
 
     selected_user.user_name = up_user.user_name
     selected_user.email = up_user.email
-    selected_user.password = pwd_context.hash(up_user.password)
+    selected_user.password_hash = pwd_context.hash(up_user.password)
 
     db.commit()
     db.refresh(selected_user)
@@ -146,15 +148,50 @@ def update_user_info(user_id: int, up_user: UserCreateInput, db: Session = Depen
     return selected_user
 
 
-@router.put("/user/update/username/{user_id}")
-def update_username(user_id: int, up_user: UpdateUserName, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+@router.delete("/user/delete")
+def delete_user(token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    user_to_delete = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    name = user_to_delete.user_name
+    user_to_delete_id = user_to_delete.id
+    db.delete(user_to_delete)
+    db.commit()
+
+    audio_records_to_delete = db.query(DBAudio).filter(DBAudio.user_id == user_to_delete_id).all()
+    for audio_record in audio_records_to_delete:
+        db.delete(audio_record)
+        db.commit()
+
+    return {"detail": f"User: {name}, was deleted successfully!"}
+
+
+@router.get("/audio/temp_view")
+def get_user_audio_temp_view(token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    sample_user = db.query(DBAudio).filter(DBAudio.user_id == user_id).first()
+    if not sample_user:
+        raise HTTPException(status_code=404, detail="No Audio")
+    return sample_user
+
+
+@router.put("/user/update/username")
+def update_username(up_user: UpdateUserName, token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 
     existing_user = db.query(DBUsers).filter(DBUsers.user_name == up_user.user_name).first()
-    if existing_user and existing_user.id != user_id:
-
+    if existing_user and existing_user.id != selected_user.id:
         raise HTTPException(status_code=400, detail="Username already taken")
 
     selected_user.user_name = up_user.user_name
@@ -164,35 +201,44 @@ def update_username(user_id: int, up_user: UpdateUserName, db: Session = Depends
 
     return selected_user.user_name
 
-@router.put("/user/update/password/{user_id}")
-def update_password(user_id: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+
+@router.put("/user/update/password")
+def update_password(up_user: UpdatePassword, token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    selected_user.password = pwd_context.hash(up_user.password)
+    selected_user.password_hash = pwd_context.hash(up_user.password)
 
     db.commit()
     db.refresh(selected_user)
 
-    return "Password updated for " + selected_user.user_name
+    return {"detail": f"Password updated for {selected_user.user_name}"}
 
-@router.put("/user/update/email/{user_id}")
-def update_email(user_id: int, up_user: UpdateEmail, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+
+@router.put("/user/update/email")
+def update_email(up_user: UpdateEmail, token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 
     existing_email = db.query(DBUsers).filter(DBUsers.email == up_user.email).first()
-    if existing_email and existing_email.id != user_id:
+    if existing_email and existing_email.id != selected_user.id:
         raise HTTPException(status_code=400, detail="Email already taken")
 
     selected_user.email = up_user.email
-   
+
     db.commit()
     db.refresh(selected_user)
 
-    return "Email updated for " + selected_user.user_name
+    return {"detail": f"Email updated for {selected_user.user_name}"}
+
 
 @router.post("/user/confirm")
 def confirm_user(attempt_user: ConfirmUser, db: Session = Depends(get_db)):
@@ -206,46 +252,23 @@ def confirm_user(attempt_user: ConfirmUser, db: Session = Depends(get_db)):
     return attempted_user
 
 
-@router.delete("/user/delete/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user_to_delete = db.query(DBUsers).filter(DBUsers.id == user_id).first()
-    name = ""
-    user_to_delete_id = 101
-    if not user_to_delete:
-        raise HTTPException(status_code=404, detail="User not found")
+@router.post("/audio/create")
+def user_create_audio(audio_input: AudioCreateInput, token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
 
-    name = user_to_delete.user_name
-    user_to_delete_id = user_to_delete.id
-    db.delete(user_to_delete)
-    db.commit()
-
-    # Delete corresponding audio files
-    audio_records_to_delete = db.query(DBAudio).filter(DBAudio.user_id == user_to_delete_id).all()
-    for audio_record in audio_records_to_delete:
-        db.delete(audio_record)
-        db.commit()
-
-    test_delete = db.query(DBUsers).filter(DBUsers.id == user_id).first()
-    if not test_delete:
-        return "User: " + name + ", was deleted successfully!"
-
-    return "User: " + name + ", was not deleted"
-
-
-@router.post("/audio/create/{user_id}")
-def user_create_audio(user_id: int, audio_input: AudioCreateInput, db: Session = Depends(get_db)):
-    attempted_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+    attempted_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
     if not attempted_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user_audios = db.query(DBAudio).filter(DBAudio.user_id == user_id).all()
+    user_audios = db.query(DBAudio).filter(DBAudio.user_id == attempted_user.id).all()
 
     for audio_file in user_audios:
         if audio_file.audio_name == audio_input.audio_name:
             raise HTTPException(status_code=400, detail="Audio name already used")
 
     audio_save = DBAudio(
-        user_id=user_id,
+        user_id=attempted_user.id,
         audio_name=audio_input.audio_name,
         created_at=time.strftime("%H:%M:%S", time.localtime()),
         file_path=audio_input.file_path
@@ -256,9 +279,18 @@ def user_create_audio(user_id: int, audio_input: AudioCreateInput, db: Session =
     db.refresh(audio_save)
     return audio_save
 
-@router.get("/audio/get_audios/{user_id}")
-def user_get_all_audio(user_id: int, db: Session = Depends(get_db)):
-    audio_records = db.query(DBAudio).filter(DBAudio.user_id == user_id).all()
+
+@router.get("/audio/get_audios")
+def user_get_all_audio(token: str = Header(...), db: Session = Depends(get_db)):
+    token_data = decode_access_token(token)
+    if not token_data:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_id = token_data.username
+    #print(user_id)
+    #get the user id based on username
+    #attempted_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+    sample_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+    audio_records = db.query(DBAudio).filter(DBAudio.user_id == sample_user.id).all()
     return audio_records
 
 

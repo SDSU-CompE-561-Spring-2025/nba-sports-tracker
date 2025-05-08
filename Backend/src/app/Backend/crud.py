@@ -69,7 +69,7 @@ async def verify_user(verification_code: str, token: str = Header(...), db: Asyn
     token_data = decode_access_token(token)
     user_id = token_data.username  # Assuming the username is stored as the user ID in the token
     
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     selected_user = result.scalar_one_or_none()
 
@@ -118,13 +118,13 @@ async def request_new_verification_code(token: str = Header(...), db: AsyncSessi
     
     return HTTPException(status_code=200, detail="New verification code sent to email")
 
-#debug
+#got 200
 @router.get("/user")
 async def get_user_by_username(token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
     user_id = token_data.username
 
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     sample_user = result.scalar_one_or_none()
 
@@ -132,14 +132,14 @@ async def get_user_by_username(token: str = Header(...), db: AsyncSession = Depe
         raise HTTPException(status_code=404, detail="User not found")
     return sample_user
 
-#debug
+#got 200
 @router.put("/user/update")
 async def update_user_info(up_user: UserCreateInput, token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
     user_id = token_data.username
    
     #target user
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     selected_user = result.scalar_one_or_none()
 
@@ -178,7 +178,7 @@ async def delete_user(token: str = Header(...), db: AsyncSession = Depends(get_d
     token_data = decode_access_token(token)
     user_id = token_data.username
 
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     user_to_delete = result.scalar_one_or_none()
 
@@ -216,7 +216,7 @@ async def get_user_by_username(token: str = Header(...), db: AsyncSession = Depe
     token_data = decode_access_token(token)
     user_id = token_data.username
 
-    stmt = select(DBAudio).where(DBAudio.user_id == user_id)
+    stmt = select(DBAudio).where(DBAudio.user_name == user_id)
     result = await db.execute(stmt)
     sample_user = result.scalar_one_or_none()
 
@@ -224,14 +224,14 @@ async def get_user_by_username(token: str = Header(...), db: AsyncSession = Depe
         raise HTTPException(status_code=404, detail="No Audio")
     return sample_user
 
-#debug
+#got 200
 @router.put("/user/update/username")
 async def update_username(up_user: UpdateUserName, token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
     user_id = token_data.username
     
     # Get user by ID
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     selected_user = result.scalar_one_or_none()
 
@@ -254,13 +254,13 @@ async def update_username(up_user: UpdateUserName, token: str = Header(...), db:
 
     return selected_user.user_name
 
-#debug
+#got 200
 @router.put("/user/update/password")
 async def update_password(up_user: UpdatePassword, token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
     user_id = token_data.username
     
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     selected_user = result.scalar_one_or_none()
 
@@ -274,13 +274,13 @@ async def update_password(up_user: UpdatePassword, token: str = Header(...), db:
 
     return "Password updated for " + selected_user.user_name
 
-#debug
+#got 200
 @router.put("/user/update/email")
 async def update_email(up_user: UpdateEmail, token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
     user_id = token_data.username
 
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     selected_user = result.scalar_one_or_none()
 
@@ -301,7 +301,7 @@ async def update_email(up_user: UpdateEmail, token: str = Header(...), db: Async
 
     return "Email updated for " + selected_user.user_name
 
-#debug
+#got 200
 @router.post("/user/confirm")
 async def confirm_user(attempt_user: ConfirmUser, db: AsyncSession = Depends(get_db)):
     stmt = select(DBUsers).where(DBUsers.user_name == attempt_user.user_name)
@@ -320,10 +320,10 @@ async def confirm_user(attempt_user: ConfirmUser, db: AsyncSession = Depends(get
 @router.post("/audio/create")
 async def user_create_audio(audio_input: AudioCreateInput, token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
-    user_id = token.username
+    user_id = token_data.username
     
     # Check if user exists
-    stmt = select(DBUsers).where(DBUsers.id == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     attempted_user = result.scalar_one_or_none()
 
@@ -331,7 +331,7 @@ async def user_create_audio(audio_input: AudioCreateInput, token: str = Header(.
         raise HTTPException(status_code=404, detail="User not found")
 
     # Check for duplicate audio name
-    stmt = select(DBAudio).where(DBAudio.user_id == user_id)
+    stmt = select(DBAudio).where(DBAudio.user_id == attempted_user.id)
     result = await db.execute(stmt)
     user_audios = result.scalars().all()
 

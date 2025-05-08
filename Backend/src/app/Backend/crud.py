@@ -1,6 +1,6 @@
 #External Imports
 from io import BytesIO
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Header
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status, Header
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -550,3 +550,63 @@ async def download_audio(
         media_type="audio/mpeg",
         headers={"Content-Disposition": f'attachment; filename="{audio.audio_name}"'}
     )
+
+@router.post("/auth/forgot-password")
+async def forgot_password(username: str, db: AsyncSession = Depends(get_db)):
+    stmt = select(DBUsers).where(DBUsers.user_name == username)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user:
+        # Generate new reset code
+        reset_code = generate_verification_code()
+        expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
+
+        user.verification_code = str(reset_code)
+        user.verification_code_expiry = expiry
+
+        await db.commit()
+        await db.refresh(user)
+
+        send_verification_email(user.email, user.verification_code)
+
+    return {
+        "message": "A password reset code was sent to your email if your account exists.",
+        "expires_at": expiry.isoformat()
+    }
+
+
+@router.post("/auth/reset-password")
+async def reset_password(
+    username: str = Body(...),
+    verification_code: str = Body(...),
+    new_password: str = Body(...),
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(DBUsers).where(DBUsers.user_name == username)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.verification_code:
+        raise HTTPException(status_code=400, detail="Invalid reset code or user")
+
+    now = datetime.now(timezone.utc)
+
+    if (
+        user.verification_code != verification_code
+        or not user.verification_code_expiry
+        or now > user.verification_code_expiry
+    ):
+        raise HTTPException(status_code=400, detail="Invalid or expired reset code")
+
+    # Update password
+    user.password_hash = pwd_context.hash(new_password)
+    user.verification_code = None
+    user.verification_code_expiry = None
+
+    await db.commit()
+    await db.refresh(user)
+
+    return {"message": "Password reset successful."}
+
+

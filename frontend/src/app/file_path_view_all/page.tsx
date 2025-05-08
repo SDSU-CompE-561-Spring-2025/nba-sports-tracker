@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext"
 
 type AudioRecord = {
   track_id: number
@@ -35,6 +37,39 @@ export default function ViewFilePaths() {
   const deleteButtonRef = useRef<HTMLButtonElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const animationRef = useRef<number | null>(null)
+  const { logout } = useAuth()
+  const router = useRouter();
+  useEffect(() => {
+    const checkAudioEndpoint = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          logout(); // Clear context and token
+          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+          return;
+        }
+  
+        const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios`, {
+          headers: {
+            token: token,
+          },
+        });
+  
+        if (!res.ok) {
+          logout(); // Clear context and token
+          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+          return;
+      }
+  
+        // Optionally parse to ensure it's valid JSON (can be removed if not needed)
+        await res.json();
+      } catch (err) {
+        console.error("Error checking audio endpoint:", err);
+      }
+    };
+  
+    checkAudioEndpoint();
+  }, []);
 
   useEffect(() => {
     const fetchAudio = async () => {

@@ -65,7 +65,7 @@ export default function SignUpForm() {
         throw Error("User already Exists. Try Again!")
       }
       else if (response.ok) {
-        toast.success("Welcome back!");
+        toast.success("Welcome!!!");
         setTimeout(() => {
           window.location.href = '/';
         }, 2000);

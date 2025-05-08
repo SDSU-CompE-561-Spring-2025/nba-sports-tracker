@@ -38,6 +38,14 @@ export default function SignInPage() {
 
       {/* Sign-Up Redirect */}
       <div className={"flex items-center gap-4 justify-center mt-3"}>
+        <Link
+          href="/forgot_password/verify-user"
+          className="text-sm leading-none m-0 text-blue-500"
+        >
+          Forgot Password?
+        </Link>
+      </div>
+      <div className={"flex items-center gap-4 justify-center mt-3"}>
         <p className={"text-sm leading-none m-0"}>New to The Audio Hub?</p>
         <Button variant={"outline"} className="">
           <Link
@@ -56,14 +64,7 @@ export default function SignInPage() {
           </Link>
         </Button>
       </div>
-      <div className={"flex items-center gap-4 justify-center mt-3"}>
-        <Link
-          href="/sign_in_sign_up/sign-up"
-          className="text-sm leading-none m-0"
-        >
-          Forgot Password ?
-        </Link>
-      </div>
+
     </div>
   );
 }

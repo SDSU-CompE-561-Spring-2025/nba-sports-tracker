@@ -9,6 +9,7 @@ import React, {
 } from "react"
 
 import { getToken, setToken, clearToken } from "@/lib/auth"
+import { redirect } from "next/navigation";
 
 interface AuthContextType {
   token: string | null
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     clearToken()     // Remove from localStorage
     _setToken(null)  // Clear React state
+    redirect("/")
   }
 
   return (

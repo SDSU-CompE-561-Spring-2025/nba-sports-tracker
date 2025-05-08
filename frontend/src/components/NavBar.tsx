@@ -3,61 +3,38 @@
 import { useAuth } from "@/context/AuthContext";
 import { ThemeSwitcherButton } from "@/components/ThemeSwitcherButton";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Home, LayoutDashboard, Headphones, UploadCloud, User } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 const navList = [
-  {
-    label: "Home",
-    link: "/",
-    protected: false,
-    icon: Home,
-  },
-  {
-    label: "Dashboard",
-    link: "/file_path_view_all", // Dashboard now points to File Path View All
-    protected: true,
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Listening Page",
-    link: "/listening_page",
-    protected: true,
-    icon: Headphones,
-  },
-  {
-    label: "Upload File Path",
-    link: "/uploading_file_path",
-    protected: false,
-    icon: UploadCloud,
-  },
-  {
-    label: "About",
-    link: "#", // Not clickable
-    protected: false,
-  },
-  {
-    label: "Support",
-    link: "#", // Not clickable
-    protected: false,
-  },
+  { label: "Home",              link: "/",                     protected: false, icon: Home },
+  { label: "Dashboard",         link: "/file_path_view_all",    protected: true,  icon: LayoutDashboard },
+  { label: "Listening Page",    link: "/listening_page",        protected: true,  icon: Headphones },
+  { label: "Upload File Path",  link: "/uploading_file_path",   protected: true, icon: UploadCloud },
+  { label: "About",             link: "/about",                      protected: false },
+  // { label: "Support",           link: "#",                      protected: false },
 ];
 
 function NavBar() {
   const pathname = usePathname();
-  const { token, logout } = useAuth(); // Grab the JWT and logout function
-
+  const { token, logout } = useAuth();
+  const router = useRouter();
   // Filter navigation items based on authentication
-  const filteredNavList = navList.filter((item) => !item.protected || token);
+  const navList11 = navList.filter((item) => !item.protected || token);
+
+  const filteredNavList = navList11.filter(
+    (item) => (!item.protected || token) && (item.label !== "Home" || !token)
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container mx-auto px-4">
         <nav className="flex h-16 items-center justify-between">
-          {/* Logo and Brand */}
+
+          {/* Logo */}
           <div className="flex items-center gap-2 mr-4">
             <Link href="/" className="flex items-center gap-2">
               <Image
@@ -71,36 +48,76 @@ function NavBar() {
             </Link>
           </div>
 
-          {/* Navigation Items - Desktop */}
+          {/* Desktop Nav Items */}
           <div className="hidden md:flex items-center space-x-4">
-            {filteredNavList.map((item) => (
-              <NavbarItem key={item.label} link={item.link} label={item.label} icon={item.icon} />
+            {filteredNavList.map(item => (
+              <NavbarItem
+                key={item.label}
+                link={item.link}
+                label={item.label}
+                icon={item.icon}
+              />
             ))}
           </div>
 
-          {/* Right Section: Actions */}
+          {/* Actions */}
           <div className="flex items-center gap-2">
             <ThemeSwitcherButton />
+
             <DropdownMenu.Root>
               <DropdownMenu.Trigger asChild>
                 <button className="flex items-center justify-center h-full aspect-square p-0 rounded-none">
                   <User className="h-6 w-6 text-muted-foreground hover:text-foreground" />
                 </button>
               </DropdownMenu.Trigger>
+
               <DropdownMenu.Content
-                className="bg-white shadow-md rounded-md p-2 w-40"
                 align="end"
                 sideOffset={5}
+                className="
+                  bg-white
+                  dark:bg-black
+                  dark:text-white
+                  shadow-md
+                  rounded-md
+                  p-2
+                  w-40
+                "
               >
-                <DropdownMenu.Item
-                  className="block px-4 py-2 text-sm text-muted-foreground cursor-default"
-                >
-                  View Account
+                <DropdownMenu.Item asChild>
+                  <Link
+                    href="/account_page"
+                    className="
+                      block px-4 py-2
+                      text-sm text-muted-foreground
+                      dark:text-white
+                      hover:bg-gray-100
+                      dark:hover:bg-gray-700
+                      dark:hover:text-white
+                      rounded-md
+                    "
+                  >
+                    View Account
+                  </Link>
                 </DropdownMenu.Item>
-                <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
+
+                <DropdownMenu.Separator className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
+
                 <DropdownMenu.Item
-                  onClick={logout}
-                  className="block px-4 py-2 text-sm text-muted-foreground hover:bg-gray-100 hover:text-foreground rounded-md cursor-pointer"
+                  onClick={() => {
+                    logout();                 // clear context/token
+                    router.push("/sign_in_sign_up/sign-in"); // redirect after logout
+                  }}
+                  className="
+                    block px-4 py-2
+                    text-sm text-muted-foreground
+                    dark:text-white
+                    hover:bg-gray-100
+                    dark:hover:bg-gray-700
+                    dark:hover:text-white
+                    rounded-md
+                    cursor-pointer
+                  "
                 >
                   Logout
                 </DropdownMenu.Item>
@@ -110,12 +127,17 @@ function NavBar() {
         </nav>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Nav */}
       <div className="md:hidden border-t">
         <div className="container mx-auto px-4">
           <div className="flex justify-between">
-            {filteredNavList.map((item) => (
-              <MobileNavItem key={item.label} link={item.link} label={item.label} icon={item.icon} />
+            {filteredNavList.map(item => (
+              <MobileNavItem
+                key={item.label}
+                link={item.link}
+                label={item.label}
+                icon={item.icon}
+              />
             ))}
           </div>
         </div>
@@ -138,17 +160,17 @@ function NavbarItem({ link, label, icon: Icon, clickCallBack }: NavbarItemProps)
   return (
     <Link
       href={link}
+      onClick={() => clickCallBack?.()}
       className={cn(
-        "relative px-3 py-2 text-sm font-medium transition-colors hover:text-foreground flex items-center gap-2 rounded-md",
-        isActive ? "text-amber-500" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        "relative px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2 rounded-md",
+        isActive
+          ? "text-red-600"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       )}
-      onClick={() => {
-        if (clickCallBack) clickCallBack();
-      }}
     >
       {Icon && <Icon className="h-4 w-4" />}
       {label}
-      {isActive && <span className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-amber-500" />}
+      {isActive && <span className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-red-600" />}
     </Link>
   );
 }

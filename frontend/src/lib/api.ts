@@ -1,9 +1,11 @@
+import { API_HOST_BASE_URL } from "./constants";
+
 export async function apiFetch<T>(
     path: string,
     opts: RequestInit = {}
   ): Promise<T> {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE}${path}`,
+      `${API_HOST_BASE_URL}${path}`,
       {
         credentials: "include",          // sends cookies automatically
         headers: { "Content-Type": "application/json", ...(opts.headers || {}) },

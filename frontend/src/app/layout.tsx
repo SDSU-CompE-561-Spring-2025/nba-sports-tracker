@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import PageSelect from "@/components/PageSelect";
 import { Toaster } from "@/components/ui/use-toast"
 
 import NavBar from "@/components/NavBar";
@@ -37,16 +36,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-center text-5xl`}
       >
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <AuthProvider>
-          <NavBar/>
-          <div className={'relative flex h-screen w-full flex-col'}>
-            {children}
-            <Toaster/>
-          </div>
-          <Footer/>
-        </AuthProvider>
-      </ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <NavBar />
+            <div className={'relative flex min-h-screen w-full flex-col'}>
+              {children}
+              <Toaster />
+            </div>
+            <Footer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

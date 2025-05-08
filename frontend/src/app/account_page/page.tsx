@@ -20,7 +20,6 @@ interface AudioFile {
 }
 
 interface User {
-  id:        number;
   user_name: string;
   email:     string;
 }
@@ -90,7 +89,6 @@ export default function AccountPage() {
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-8">
       <ProfileInfoForm
-        userId={user.id}
         initialUsername={user.user_name}
         initialEmail={user.email}
       />

@@ -1,5 +1,5 @@
 #External Imports
-from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, LargeBinary
 from sqlalchemy.sql import func
 
 
@@ -30,4 +30,4 @@ class DBAudio(Base):
     audio_name = Column(String, index=True)
     created_at = Column(String, index=True)
     file_path = Column(String, index=True)
-
+    file_data = Column(LargeBinary)

@@ -1,5 +1,7 @@
 #External Imports
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from io import BytesIO
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Header
+from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -172,7 +174,7 @@ async def update_user_info(up_user: UserCreateInput, token: str = Header(...), d
 
     return selected_user
 
-#debug
+#got 200
 @router.delete("/user/delete")
 async def delete_user(token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
@@ -186,6 +188,7 @@ async def delete_user(token: str = Header(...), db: AsyncSession = Depends(get_d
         raise HTTPException(status_code=404, detail="User not found")
 
     name = user_to_delete.user_name
+    user_id = user_to_delete.id
 
     #delete user
     await db.delete(user_to_delete)
@@ -216,9 +219,15 @@ async def get_user_by_username(token: str = Header(...), db: AsyncSession = Depe
     token_data = decode_access_token(token)
     user_id = token_data.username
 
-    stmt = select(DBAudio).where(DBAudio.user_name == user_id)
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
     result = await db.execute(stmt)
     sample_user = result.scalar_one_or_none()
+
+    user_id = sample_user.id
+
+    stmt = select(DBAudio).where(DBAudio.user_id == user_id)
+    result = await db.execute(stmt)
+    sample_user = result.scalars().all()
 
     if not sample_user:
         raise HTTPException(status_code=404, detail="No Audio")
@@ -316,7 +325,7 @@ async def confirm_user(attempt_user: ConfirmUser, db: AsyncSession = Depends(get
 
     return attempted_user
 
-#debug
+#got 200
 @router.post("/audio/create")
 async def user_create_audio(audio_input: AudioCreateInput, token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
@@ -329,6 +338,8 @@ async def user_create_audio(audio_input: AudioCreateInput, token: str = Header(.
 
     if not attempted_user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    user_id = attempted_user.id
 
     # Check for duplicate audio name
     stmt = select(DBAudio).where(DBAudio.user_id == attempted_user.id)
@@ -352,11 +363,18 @@ async def user_create_audio(audio_input: AudioCreateInput, token: str = Header(.
 
     return audio_save
 
-#debug
+#got 200
 @router.get("/audio/get_audios")
 async def user_get_all_audio(token: str = Header(...), db: AsyncSession = Depends(get_db)):
     token_data = decode_access_token(token)
     user_id = token_data.username
+    
+    # Check if user exists
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
+    result = await db.execute(stmt)
+    attempted_user = result.scalar_one_or_none()
+
+    user_id = attempted_user.id
 
     stmt = select(DBAudio).where(DBAudio.user_id == user_id)
     result = await db.execute(stmt)
@@ -438,9 +456,87 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+#got 200
+@router.post("/upload-audio-db/")
+async def upload_audio_to_db(
+    file: UploadFile = File(...),
+    token: str = Header(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not file.content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="File is not audio")
+    
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+    
+    # Check if user exists/token is valid
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
+    result = await db.execute(stmt)
+    User = result.scalar_one_or_none()  
 
+    user_id = User.id  
 
+    stmt = select(DBAudio).where(DBAudio.user_id == user_id)
+    result = await db.execute(stmt)
+    audio_records = result.scalars().all()
 
+    if (file.filename in [audio.audio_name for audio in audio_records]):
+        raise HTTPException(status_code=400, detail="Audio name already used")
 
+    audio_bytes = await file.read()
 
+    new_audio = DBAudio(
+        user_id=user_id,
+        audio_name=file.filename,
+        file_path='/test/path',
+        file_data=audio_bytes
+    )
 
+    db.add(new_audio)
+    await db.commit()
+    await db.refresh(new_audio)
+
+    return {"track_id": new_audio.track_id, "name": new_audio.audio_name}
+
+@router.get("/download-audio/{track_id}")
+async def download_audio(
+    track_id: int,
+    token: str = Header(...),
+    db: AsyncSession = Depends(get_db)
+):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+    
+    # Check if user exists
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
+    result = await db.execute(stmt)
+    attempted_user = result.scalar_one_or_none()
+
+    if not attempted_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_id = attempted_user.id
+
+    #get user id of audio
+    stmt = select(DBAudio).where(DBAudio.track_id == track_id)
+    result = await db.execute(stmt)
+    audio = result.scalar_one_or_none()
+
+    #for security information, we don't let an unathurized user
+    #know that the audio exists or not, so if it doesn't exist,
+    #we just return a 401 error, but if it does,
+    #we check if user is authorized, and return 401 if not
+    if not audio or not audio.file_data:
+        raise HTTPException(status_code=401, detail="User Not Authorized")
+
+    user_audio = audio.user_id
+
+    if user_id != user_audio:
+        raise HTTPException(status_code=401, detail="User Not Authorized")   
+
+    # Prepare a streamable response
+    return StreamingResponse(
+        BytesIO(audio.file_data),
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": f'attachment; filename="{audio.audio_name}"'}
+    )

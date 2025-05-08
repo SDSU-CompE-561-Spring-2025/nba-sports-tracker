@@ -44,13 +44,14 @@ function ChangePasswordForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const data = {
-      user_name: userName,
+      username: userName,
       verification_code: values.verification_code,
-      password: values.password
+      new_password: values.password
     }
     try {
+      console.log("Data to be sent:", data)
       const response = await fetch(`${API_HOST_BASE_URL}/auth/reset-password`, {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },

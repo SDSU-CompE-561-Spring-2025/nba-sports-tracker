@@ -1,20 +1,10 @@
 #External Imports
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, constr, EmailStr, Field, FilePath
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import Session
-import time
+from fastapi import HTTPException
 from datetime import datetime, timedelta, UTC
 import jwt
-from passlib.context import CryptContext
-from datetime import timezone
 
 #Imports from other files
 from app.core.config import settings
-from app.schemas.token import Token
-from app.Backend.database import Base, get_db
 from app.schemas.token import TokenData
 from jwt import InvalidTokenError
 

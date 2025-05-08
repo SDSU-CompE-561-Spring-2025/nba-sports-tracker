@@ -1,15 +1,6 @@
 #External Imports
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, constr, EmailStr, Field, FilePath
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import Session
-import time
-from datetime import datetime, timedelta, UTC
-import jwt
-from passlib.context import CryptContext
-from datetime import timezone
+from pydantic import BaseModel, constr, EmailStr
+
 
 #Test schemas
 class A_Route_Inputs(BaseModel):

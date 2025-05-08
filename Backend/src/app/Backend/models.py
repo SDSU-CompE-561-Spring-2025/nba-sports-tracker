@@ -1,25 +1,11 @@
 #External Imports
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, constr, EmailStr, Field, FilePath
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import Session
-import time
-from datetime import datetime, timedelta, UTC
-import jwt
-from passlib.context import CryptContext
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, LargeBinary
+from sqlalchemy.sql import func
 
-#Imports from other files
-from app.Backend.auth import create_access_token, generate_verification_code, send_verification_email
-from app.core.config import settings
-from app.schemas.token import Token
-from app.Backend.database import Base, get_db
 
-#verification code libraries
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+#Internal Imports
+from app.Backend.database import Base
 
 #User DB Model
 class DBUsers(Base):
@@ -29,11 +15,12 @@ class DBUsers(Base):
     user_name = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     password_hash = Column(String)
-    created_at = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     is_verified = Column(Boolean, default=True)
     verification_code = Column(String, nullable=True)
-    verification_code_expiry = Column(String, nullable=True)  # Expiration time for verification code
+    verification_code_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
+    # Expiration time for verification code
 
 #Audio DB Model
 class DBAudio(Base):
@@ -44,4 +31,4 @@ class DBAudio(Base):
     audio_name = Column(String, index=True)
     created_at = Column(String, index=True)
     file_path = Column(String, index=True)
-
+    file_data = Column(LargeBinary)

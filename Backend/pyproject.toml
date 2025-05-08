@@ -45,6 +45,8 @@ dependencies = [
   "pytest>=8.3.5",
   "httpx>=0.28.1",
   "hatch>=1.14.1",
+  "asyncpg>=0.30.0",
+  "pytest-asyncio>=0.26.0",
 ]
 
 [project.urls]
@@ -59,6 +61,7 @@ path = "src/app/__about__.py"
 python = "3.12"
 installer = "uv"
 path = ".venv"
+type = "virtual"
 
 [tool.hatch.envs.default.scripts]
 dev = "uvicorn src.app.main:app --reload"

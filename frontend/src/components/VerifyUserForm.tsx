@@ -1,4 +1,5 @@
 "use client"
+
 import { Button } from "./ui/button"
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "./ui/form"
 import { Input } from "./ui/input"
@@ -27,7 +28,7 @@ function VerifyUserForm() {
     try {
     const res = await verifyUser(values.user_name);
     if(res) {
-      const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/newcoderequest?username=${values.user_name}`, {
+      const response = await fetch(`${API_HOST_BASE_URL}/auth/forgot-password?username=${values.user_name}`, {
         method: 'PUT',
       });
   
@@ -37,7 +38,7 @@ function VerifyUserForm() {
       if (response.ok) {
         localStorage.setItem("user_name", values.user_name)
         setTimeout(() => {
-          window.location.href = '/forgot_password/verify-code';
+          window.location.href = '/forgot_password/update-password';
         }, 2000);
         return true;
       }

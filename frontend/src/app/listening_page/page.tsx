@@ -24,13 +24,10 @@ export default function AudioPlayerPage() {
   const [volume, setVolume] = useState(0.7)
 
   // Handle logout and redirection
-  const handleLogoutAndRedirect = async () => {
+  const handleLogoutAndRedirect = () => {
     try {
-      // Check if logout returns a promise
-      const result = logout()
-      if (result instanceof Promise) {
-        await result
-      }
+      // Call logout function
+      logout()
 
       // Use setTimeout to ensure the redirect happens after state updates
       setTimeout(() => {
@@ -49,7 +46,7 @@ export default function AudioPlayerPage() {
       try {
         const token = localStorage.getItem("accessToken")
         if (!token) {
-          await handleLogoutAndRedirect()
+          handleLogoutAndRedirect()
           return
         }
 
@@ -60,7 +57,7 @@ export default function AudioPlayerPage() {
         })
 
         if (!res.ok) {
-          await handleLogoutAndRedirect()
+          handleLogoutAndRedirect()
           return
         }
 
@@ -68,7 +65,7 @@ export default function AudioPlayerPage() {
         await res.json()
       } catch (err) {
         console.error("Error checking audio endpoint:", err)
-        await handleLogoutAndRedirect()
+        handleLogoutAndRedirect()
       } finally {
         setIsLoading(false)
       }

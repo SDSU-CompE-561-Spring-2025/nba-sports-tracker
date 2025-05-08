@@ -130,6 +130,7 @@ export default function ViewFilePaths() {
       // Check if the date is valid
       if (!isNaN(date.getTime())) {
         return new Intl.DateTimeFormat("en-US", {
+          weekday: "short", // Add day of week
           year: "numeric",
           month: "short",
           day: "numeric",

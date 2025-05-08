@@ -36,14 +36,14 @@ const navList = [
   },
   {
     label: "About",
-    link: "#", // Not clickable
+    link: "/about", // Not clickable
     protected: false,
   },
-  {
-    label: "Support",
-    link: "#", // Not clickable
-    protected: false,
-  },
+  //{
+  // label: "Support",
+  //  link: "#", // Not clickable
+  //  protected: false,
+  //},
 ];
 
 function NavBar() {

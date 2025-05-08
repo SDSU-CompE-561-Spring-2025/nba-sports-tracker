@@ -8,6 +8,7 @@ import { API_HOST_BASE_URL } from '@/lib/constants'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { toast } from 'sonner'
 
 function VerifyCodeForm() {
   const [userName, setUserName] = useState("");
@@ -31,21 +32,23 @@ function VerifyCodeForm() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/${userName}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: values.verification_code,
-    });
+    try {
+      const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify?user_name=${userName}&verification_code=${values.verification_code}`, {
+        method: 'PUT',
+      });
+  
+      if (response.ok) {
+        setTimeout(() => {
+          window.location.href = '/forgot_password/update-password';
+        }, 2000);
+        return true;
+      }
+      throw new Error('Invalid Credentials')
 
-    if (response.ok) {
-      setTimeout(() => {
-        window.location.href = '/forgot_password/update-password';
-      }, 2000);
-      return true;
     }
-    throw new Error('Invalid Credentials');
+    catch(err: any) {
+      toast.error(err.message ?? "Error with the code")
+    }
   }
 
   return (

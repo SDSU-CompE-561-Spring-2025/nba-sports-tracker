@@ -9,13 +9,11 @@ import { useToast }  from "@/components/ui/use-toast";
 import { apiFetch }  from "@/lib/api";
 
 interface Props {
-  userId:         number;
   initialUsername:string;
   initialEmail:   string;
 }
 
 export default function ProfileInfoForm({
-  userId,
   initialUsername,
   initialEmail,
 }: Props) {

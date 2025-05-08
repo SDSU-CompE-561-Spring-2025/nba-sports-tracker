@@ -28,9 +28,11 @@ function VerifyUserForm() {
     try {
     const res = await verifyUser(values.user_name);
     if(res) {
+
       const response = await fetch(`${API_HOST_BASE_URL}/auth/forgot-password?username=${values.user_name}`, {
-        method: 'PUT',
+        method: 'POST',
       });
+      
   
       if(response.status == 404) {
         throw Error("User not found")

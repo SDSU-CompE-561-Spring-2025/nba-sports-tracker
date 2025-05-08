@@ -1,8 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { API_HOST_BASE_URL } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 export default function Page() {
+
+  const { logout } = useAuth()
+    const router = useRouter();
+    useEffect(() => {
+      const checkAudioEndpoint = async () => {
+        try {
+          const token = localStorage.getItem("accessToken");
+          if (!token) {
+            logout(); // Clear context and token
+            router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+            return;
+          }
+    
+          const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios`, {
+            headers: {
+              token: token,
+            },
+          });
+    
+          if (!res.ok) {
+            logout(); // Clear context and token
+            router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+            return;
+        }
+    
+          // Optionally parse to ensure it's valid JSON (can be removed if not needed)
+          await res.json();
+        } catch (err) {
+          console.error("Error checking audio endpoint:", err);
+        }
+      };
+    
+      checkAudioEndpoint();
+    }, []);
+
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

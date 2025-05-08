@@ -57,7 +57,7 @@ def test_token_get_audio():
     response = requests.get(f"{BASE_URL}/audio/get_audios", headers=headers)
     assert response.status_code == 200, f"Failed to get audio data: {response.content}"
 
-def test_delete_token():
+def test_delete_user_token():
         user_data = generate_random_user()
         register_user(user_data)
         headers = {"Content-Type": "application/x-www-form-urlencoded"}

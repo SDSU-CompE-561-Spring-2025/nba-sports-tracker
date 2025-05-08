@@ -6,6 +6,7 @@ import ProfileInfoForm from "@/components/ProfileInfoForm";
 import AudioFilesList  from "@/components/AudioFileList";
 import { apiFetch }    from "@/lib/api";
 import { toast } from "sonner";
+import { API_HOST_BASE_URL } from "@/lib/constants";
 
 type RawAudio = {
   track_id:   number;
@@ -51,13 +52,13 @@ export default function AccountPage() {
         };
 
         // fetch user
-        const userRes = await fetch(`${API}/auth/user/`, { headers });
+        const userRes = await fetch(`${API_HOST_BASE_URL}/auth/user/`, { headers });
         if (!userRes.ok) throw new Error("Failed to load user");
         const u: User = await userRes.json();
         setUser(u);
 
         // fetch audio
-        const audioRes = await fetch(`${API}/auth/audio/get_audios/`, {
+        const audioRes = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios/`, {
           headers,
         });
         if (!audioRes.ok) throw new Error("Failed to load audio files");

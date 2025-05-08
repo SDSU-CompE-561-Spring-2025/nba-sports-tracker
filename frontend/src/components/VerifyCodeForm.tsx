@@ -9,6 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { LockKeyhole } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card'
 
 function VerifyCodeForm() {
   const [userName, setUserName] = useState("");
@@ -20,14 +22,16 @@ function VerifyCodeForm() {
 
 
   const formSchema = z.object({
-    verification_code: z.string().min(6, { message: "Verification Code must be 6 characters" })
-      .max(6, { message: "Verification Code must be 6 characters" })
+    verification_code: z
+      .string()
+      .min(6, { message: "Verification Code must be 6 characters" })
+      .max(6, { message: "Verification Code must be 6 characters" }),
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      verification_code: '',
+      verification_code: "",
     },
   })
 
@@ -37,7 +41,7 @@ function VerifyCodeForm() {
         method: 'PUT',
       });
   
-      if (response.ok) {
+      if (response.ok && response.body.is_verified) {
         setTimeout(() => {
           window.location.href = '/forgot_password/update-password';
         }, 2000);
@@ -52,25 +56,41 @@ function VerifyCodeForm() {
   }
 
   return (
-    <Form {...form}>
-      <h2>Forgot-Password Step 2 of 3</h2>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4 w-full justify-center">
-        <FormField
-          control={form.control}
-          name="verification_code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Enter Verification Code</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter Verification Code" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Next</Button>
-      </form>
-    </Form>
+    <Card className="w-full max-w-md mx-auto shadow-lg">
+      <CardHeader className="space-y-1">
+        <div className="flex items-center justify-center mb-2">
+          <div className="bg-primary/10 p-3 rounded-full">
+            <LockKeyhole className="h-6 w-6 text-primary" />
+          </div>
+        </div>
+        <CardTitle className="text-2xl font-bold text-center">Reset Password</CardTitle>
+        <CardDescription className="text-center">Step 2 of 3: Enter verification code</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="verification_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Verification Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter 6-digit code" {...field} className="h-10" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      </CardContent>
+      <CardFooter>
+        <Button type="submit" className="w-full" onClick={form.handleSubmit(onSubmit)}>
+          Continue
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }
 

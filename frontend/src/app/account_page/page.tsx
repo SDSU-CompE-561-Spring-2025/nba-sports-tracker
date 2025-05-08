@@ -26,28 +26,43 @@ interface User {
 }
 
 export default function AccountPage() {
-  const [user, setUser]     = useState<User | null>(null);
-  const [files, setFiles]   = useState<AudioFile[]>([]);
+  const [user, setUser]       = useState<User | null>(null);
+  const [files, setFiles]     = useState<AudioFile[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const API = process.env.NEXT_PUBLIC_API_BASE!;
+
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      toast.error("No token found");
+    // 1) Grab raw token
+    const rawToken = localStorage.getItem("accessToken");
+    // 2) If it's null, bail (or redirect)
+    if (!rawToken) {
       setLoading(false);
       return;
     }
+    // 3) Now TS knows `token` is a string
+    const token: string = rawToken;
 
-    Promise.all([
-      apiFetch<User>("/auth/user/", {
-        headers: { token: token },
-      }),
-      apiFetch<RawAudio[]>("/auth/audio/get_audios/", {
-        headers: { token: token },
-      }),
-    ])
-      .then(([u, raw]) => {
+    async function fetchAccount(): Promise<void> {
+      try {
+        // build headers with a guaranteed string
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+          token,                // no more null!
+        };
+
+        // fetch user
+        const userRes = await fetch(`${API}/auth/user/`, { headers });
+        if (!userRes.ok) throw new Error("Failed to load user");
+        const u: User = await userRes.json();
         setUser(u);
+
+        // fetch audio
+        const audioRes = await fetch(`${API}/auth/audio/get_audios/`, {
+          headers,
+        });
+        if (!audioRes.ok) throw new Error("Failed to load audio files");
+        const raw: RawAudio[] = await audioRes.json();
         setFiles(
           raw.map((r) => ({
             id:   r.track_id,
@@ -55,13 +70,14 @@ export default function AccountPage() {
             name: r.audio_name,
           }))
         );
-      })
-      .catch((err) => {
-        console.error("Failed to fetch account data:", err);
-      })
-      .finally(() => {
+      } catch (err: any) {
+        console.error(err);
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+
+    fetchAccount();
   }, []);
 
   if (loading) {

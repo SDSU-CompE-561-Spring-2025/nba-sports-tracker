@@ -1,95 +1,58 @@
-from fastapi.testclient import TestClient
-from src.app.main import app
-
-client = TestClient(app)
-
 import random
-randomNumber = random.randint(100000, 999999)  # Generate a random number for testing
-# Test creating a user
-def test_create_user():
-    response = client.post(
-        "/auth/make_user",
-        json={
-            "user_name": "testuser" + str(randomNumber),
-            #email with a random number:
-            "email": "testuser" + str(randomNumber) + "@example.com",
-            "password": "Securepassword1"
-        }
+import string
+import requests
+
+BASE_URL = "http://127.0.0.1:8000/auth"
+
+def generate_random_user():
+    username = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    email = f"{username}@test.com"
+    password = "password123"
+    return {
+        "user_name": username,
+        "email": email,
+        "password": password
+    }
+def register_user(user_data):
+    response = requests.post(f"{BASE_URL}/make_user", json=user_data)
+    assert response.status_code == 200, f"Failed to register user: {response.json()}"
+    return response.json()
+
+def test_user_creation():
+    user_data = generate_random_user()
+    register_user(user_data)
+
+def test_user_verification():
+    user_data = generate_random_user()
+    register_user(user_data)
+
+
+def test_user_exists():
+    user_data = generate_random_user()
+    register_user(user_data)
+
+    response = requests.get(f"{BASE_URL}/user/exists", params={"username": user_data["user_name"]})
+    assert response.status_code == 200, f"Failed to check user existence: {response.json()}"
+    assert response.json()["exists"] is True
+def test_token():
+    user_data = generate_random_user()
+    # Register the user first to ensure they exist
+    register_user(user_data)
+
+    # Get the token using form data with the correct content type
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    response = requests.post(
+        f"{BASE_URL}/token", 
+        data={"username": user_data["user_name"], "password": user_data["password"]},
+        headers=headers
     )
-    assert response.status_code == 200
-
-# Test getting a user by ID
-def test_get_user():
-    response = client.get("/auth/user/1")
-    assert response.status_code == 200
-
-# Test updating a user's information
-def test_update_user():
-    response = client.put(
-        "/auth/user/update/1",
-        json={
-            "user_name": "updateduser",
-            "email": "updateduser@example.com",
-            "password": "newpassword"
-        }
-    )
-    assert response.status_code == 200
-
-# Test deleting a user
-#def test_delete_user():
-#    response = client.delete("/auth/user/delete/2")
-#    assert response.status_code == 200
-
-# Test creating an audio record
-def test_create_audio():
-    response = client.post(
-        "/auth/audio/create/1",
-        json={
-            "audio_name": "testaudio",
-            "file_path": "/path/to/audio/file.mp3"
-        }
-    )
-    assert response.status_code == 200
-
-# Test getting all audio records for a user
-def test_get_audios():
-    response = client.get("/auth/audio/get_audios/1")
-    assert response.status_code == 200
-
-# Test updating an audio record
-def test_update_audio():
-    response = client.put(
-        "/auth/audio/update/1",
-        json={
-            "audio_name": "updatedaudio",
-            "file_path": "/path/to/updated/audio/file.mp3"
-        }
-    )
-    assert response.status_code == 200
-
-# Test deleting an audio record
-def test_delete_audio():
-    response = client.delete("/auth/audio/delete/1")
-    assert response.status_code == 200
-
-# Test verifying a user
-#def test_verify_user():
-#    response = client.put("/auth/user/verify/1", params={"verification_code": "123456"})
-#    assert response.status_code == 200
-
-# Test requesting a new verification code
-def test_request_new_verification_code():
-    response = client.put("/auth/user/verify/newcoderequest/1")
-    assert response.status_code == 200
-
-# Test logging in
-def test_login():
-    response = client.post(
-        "/auth/token",
-        data={
-            "username": "testuser",
-            "password": "Securepassword1"
-        },
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
-    )
-    assert response.status_code == 200
+    
+    assert response.status_code == 200, f"Failed to get token: {response.content}"
+    token1 = response.json()["access_token"]
+    
+    # Pass the token in the "token" header
+    headers = {"token": token1}
+    
+    # Get the audio data using the token header
+    response = requests.get(f"{BASE_URL}/audio/get_audios", headers=headers)
+    assert response.status_code == 200, f"Failed to get audio data: {response.content}"

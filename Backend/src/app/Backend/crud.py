@@ -87,23 +87,24 @@ def verify_user(verification_code: str, token: str = Header(...), db: Session = 
 
 
 @router.put("/user/verify/newcoderequest")
-def request_new_verification_code(token: str = Header(...), db: Session = Depends(get_db)):
-    token_data = decode_access_token(token)
-    user_id = token_data.username
-
-    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+def request_new_verification_code(username: str, db: Session = Depends(get_db)):
+    # Query the database to find the user by username
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == username).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
     
     if selected_user.is_verified:
         raise HTTPException(status_code=400, detail="User already verified")
     
+    # Generate a new verification code
     verification_code = generate_verification_code()
     selected_user.verification_code = verification_code
-    selected_user.verification_code_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
+    selected_user.verification_code_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)  # Set expiration time to 10 minutes from now
 
+    # Send the verification email
     send_verification_email(selected_user.email, verification_code)
 
+    # Commit the changes to the database
     db.commit()
     db.refresh(selected_user)
     
@@ -348,19 +349,9 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/user/exists")
-def check_user_exists(token: str = Header(...), db: Session = Depends(get_db)):
-    # Decode the token to get the username
-    try:
-        token_data = decode_access_token(token)
-    except Exception as e:
-        return {"exists": False}
-    if not token_data:
-        return {"exists": False}
-    
-    user_id = token_data.username
-
+def check_user_exists(username: str, db: Session = Depends(get_db)):
     # Query the database to check if the user exists
-    user_exists = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+    user_exists = db.query(DBUsers).filter(DBUsers.user_name == username).first()
     
     # Return true if the user exists, otherwise false
     return {"exists": bool(user_exists)}

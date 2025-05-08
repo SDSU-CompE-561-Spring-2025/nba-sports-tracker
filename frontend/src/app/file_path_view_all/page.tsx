@@ -39,37 +39,7 @@ export default function ViewFilePaths() {
   const animationRef = useRef<number | null>(null)
   const { logout } = useAuth()
   const router = useRouter();
-  useEffect(() => {
-    const checkAudioEndpoint = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          logout(); // Clear context and token
-          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
-          return;
-        }
   
-        const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios`, {
-          headers: {
-            token: token,
-          },
-        });
-  
-        if (!res.ok) {
-          logout(); // Clear context and token
-          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
-          return;
-      }
-  
-        // Optionally parse to ensure it's valid JSON (can be removed if not needed)
-        await res.json();
-      } catch (err) {
-        console.error("Error checking audio endpoint:", err);
-      }
-    };
-  
-    checkAudioEndpoint();
-  }, []);
 
   useEffect(() => {
     const fetchAudio = async () => {
@@ -77,8 +47,9 @@ export default function ViewFilePaths() {
       try {
         const token = localStorage.getItem("accessToken")
         if (!token) {
-          console.error("No token found")
-          return
+          logout(); // Clear context and token
+          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+          return;
         }
 
         const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios`, {
@@ -86,7 +57,11 @@ export default function ViewFilePaths() {
             token: token,
           },
         })
-        if (!res.ok) throw new Error("Failed to fetch")
+        if (!res.ok) {
+          logout(); // Clear context and token
+          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+          return;
+      }
 
         const data = await res.json()
         setAudioData(data)

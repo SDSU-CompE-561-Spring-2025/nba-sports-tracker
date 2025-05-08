@@ -16,11 +16,11 @@ export default function Page() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <p className="text-gray-600 mb-4">You can select any audio file to play from your hard drive.</p>
       <div className="text-center p-6 bg-white shadow-lg rounded-2xl w-full max-w-md">
         <h1 className="text-2xl font-semibold text-indigo-700 mb-6">Play Your Audio File</h1>
 
-        {/* Use label for clean click trigger */}
         <label htmlFor="audio-upload" className="cursor-pointer inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
           Choose File
         </label>

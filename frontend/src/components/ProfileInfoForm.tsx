@@ -60,23 +60,27 @@ export default function ProfileInfoForm({ userId, initialUsername, initialEmail 
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-sm text-gray-400">Username</Label>
-            <Input
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              disabled={!editing}
-              className="text-base"
-            />
+          <Label className="text-sm text-muted-foreground">
+          Username
+          </Label>
+          <Input
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            disabled={!editing}
+            className="text-base text-foreground"
+          />
           </div>
           <div>
-            <Label className="text-sm text-gray-400">Email</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              disabled={!editing}
-              className="text-base"
-            />
+          <Label className="text-sm text-muted-foreground">
+            Email
+          </Label>
+          <Input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            disabled={!editing}
+            className="text-base text-foreground"
+          />
           </div>
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">

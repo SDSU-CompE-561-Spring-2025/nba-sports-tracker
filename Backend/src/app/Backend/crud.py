@@ -66,11 +66,9 @@ def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     return user_save
 
 @router.put("/user/verify")
-def verify_user(verification_code: str, token: str = Header(...), db: Session = Depends(get_db)):
-    token_data = decode_access_token(token)
-    user_id = token_data.username  # Assuming the username is stored as the user ID in the token
+def verify_user(user_name: str, verification_code: str, db: Session = Depends(get_db)):
 
-    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_name).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -203,9 +201,9 @@ def update_username(up_user: UpdateUserName, token: str = Header(...), db: Sessi
     return selected_user.user_name
 
 
-@router.put("/user/update/password/{user_id}")
-def update_password(user_id: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+@router.put("/user/update/password")
+def update_password(user_name: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_name).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 

@@ -22,7 +22,12 @@ function NavBar() {
   const pathname = usePathname();
   const { token, logout } = useAuth();
 
-  const filteredNavList = navList.filter(item => !item.protected || token);
+  // Filter navigation items based on authentication
+  const navList11 = navList.filter((item) => !item.protected || token);
+
+  const filteredNavList = navList11.filter(
+    (item) => (!item.protected || token) && (item.label !== "Home" || !token)
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">

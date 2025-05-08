@@ -14,7 +14,7 @@ const navList = [
   { label: "Dashboard",         link: "/file_path_view_all",    protected: true,  icon: LayoutDashboard },
   { label: "Listening Page",    link: "/listening_page",        protected: true,  icon: Headphones },
   { label: "Upload File Path",  link: "/uploading_file_path",   protected: false, icon: UploadCloud },
-  { label: "About",             link: "#",                      protected: false },
+  { label: "About",             link: "/about",                      protected: false },
   { label: "Support",           link: "#",                      protected: false },
 ];
 

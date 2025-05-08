@@ -34,7 +34,7 @@ def test_user_exists():
     response = requests.get(f"{BASE_URL}/user/exists", params={"username": user_data["user_name"]})
     assert response.status_code == 200, f"Failed to check user existence: {response.json()}"
     assert response.json()["exists"] is True
-def test_token():
+def test_token_get_audio():
     user_data = generate_random_user()
     # Register the user first to ensure they exist
     register_user(user_data)
@@ -56,3 +56,18 @@ def test_token():
     # Get the audio data using the token header
     response = requests.get(f"{BASE_URL}/audio/get_audios", headers=headers)
     assert response.status_code == 200, f"Failed to get audio data: {response.content}"
+
+def test_delete_token():
+        user_data = generate_random_user()
+        register_user(user_data)
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        response = requests.post(
+        f"{BASE_URL}/token", 
+        data={"username": user_data["user_name"], "password": user_data["password"]},
+        headers=headers)
+        assert response.status_code == 200, f"Failed to get token: {response.content}"
+        token1 = response.json()["access_token"]
+        # Pass the token in the "token" header
+        headers = {"token": token1}
+        response = requests.delete(f"{BASE_URL}/user/delete", headers=headers)
+        assert response.status_code == 200, "Failed to delete"

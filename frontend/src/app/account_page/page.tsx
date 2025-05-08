@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import ProfileInfoForm from "@/components/ProfileInfoForm";
 import AudioFilesList  from "@/components/AudioFileList";
 import { apiFetch }    from "@/lib/api";
+import { toast } from "sonner";
 
 type RawAudio = {
   track_id:   number;
@@ -32,17 +33,17 @@ export default function AccountPage() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.error("No token found");
+      toast.error("No token found");
       setLoading(false);
       return;
     }
 
     Promise.all([
       apiFetch<User>("/auth/user/", {
-        headers: { token },
+        headers: { token: token },
       }),
       apiFetch<RawAudio[]>("/auth/audio/get_audios/", {
-        headers: { token },
+        headers: { token: token },
       }),
     ])
       .then(([u, raw]) => {

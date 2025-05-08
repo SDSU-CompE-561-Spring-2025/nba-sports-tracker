@@ -60,22 +60,15 @@ export function setToken(token: string) {
   localStorage.setItem('accessToken', token);
 }
 
-export async function getUser(): Promise<User> {
-    const token = localStorage.getItem("accessToken");
-    if(!token) {
-      throw Error("No token exists for user")
-    } 
-    const res = await fetch(`${API_HOST_BASE_URL}/auth/user`, {
+export async function verifyUser(username: string): Promise<boolean> {
+    const res = await fetch(`${API_HOST_BASE_URL}/auth/user/exists?username=${username}`, {
       method: 'GET',
-      headers: {
-        token: token,
-      }
     });
   
     if (!res.ok) {
-      throw new Error('Invalid token');
+      throw new Error('Invalid username');
     }
   
-    const json = (await res.json()) as User;
-    return json;
+    const json = (await res.json());
+    return json.exists;
 }

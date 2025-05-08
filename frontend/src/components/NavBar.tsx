@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { ThemeSwitcherButton } from "@/components/ThemeSwitcherButton";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Home, LayoutDashboard, Headphones, UploadCloud, User } from "lucide-react";
@@ -13,7 +13,7 @@ const navList = [
   { label: "Home",              link: "/",                     protected: false, icon: Home },
   { label: "Dashboard",         link: "/file_path_view_all",    protected: true,  icon: LayoutDashboard },
   { label: "Listening Page",    link: "/listening_page",        protected: true,  icon: Headphones },
-  { label: "Upload File Path",  link: "/uploading_file_path",   protected: false, icon: UploadCloud },
+  { label: "Upload File Path",  link: "/uploading_file_path",   protected: true, icon: UploadCloud },
   { label: "About",             link: "/about",                      protected: false },
   // { label: "Support",           link: "#",                      protected: false },
 ];
@@ -21,7 +21,7 @@ const navList = [
 function NavBar() {
   const pathname = usePathname();
   const { token, logout } = useAuth();
-
+  const router = useRouter();
   // Filter navigation items based on authentication
   const navList11 = navList.filter((item) => !item.protected || token);
 
@@ -104,7 +104,10 @@ function NavBar() {
                 <DropdownMenu.Separator className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
 
                 <DropdownMenu.Item
-                  onClick={logout}
+                  onClick={() => {
+                    logout();                 // clear context/token
+                    router.push("/sign_in_sign_up/sign-in"); // redirect after logout
+                  }}
                   className="
                     block px-4 py-2
                     text-sm text-muted-foreground

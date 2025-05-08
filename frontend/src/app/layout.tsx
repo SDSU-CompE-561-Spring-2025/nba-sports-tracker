@@ -36,16 +36,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-center text-5xl`}
       >
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <AuthProvider>
-          <NavBar/>
-          <div className={'relative flex h-screen w-full flex-col'}>
-            {children}
-            <Toaster/>
-          </div>
-          <Footer/>
-        </AuthProvider>
-      </ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <NavBar />
+            <div className={'relative flex min-h-screen w-full flex-col'}>
+              {children}
+              <Toaster />
+            </div>
+            <Footer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

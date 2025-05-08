@@ -551,7 +551,7 @@ async def download_audio(
         headers={"Content-Disposition": f'attachment; filename="{audio.audio_name}"'}
     )
 
-@router.post("/auth/forgot-password")
+@router.post("/forgot-password")
 async def forgot_password(username: str, db: AsyncSession = Depends(get_db)):
     stmt = select(DBUsers).where(DBUsers.user_name == username)
     result = await db.execute(stmt)
@@ -576,7 +576,7 @@ async def forgot_password(username: str, db: AsyncSession = Depends(get_db)):
     }
 
 
-@router.post("/auth/reset-password")
+@router.post("/reset-password")
 async def reset_password(
     username: str = Body(...),
     verification_code: str = Body(...),
@@ -609,4 +609,16 @@ async def reset_password(
 
     return {"message": "Password reset successful."}
 
+
+@router.get("/user/exists")
+async def check_user_exists(username: str, db: AsyncSession = Depends(get_db)):
+    # Query the database to check if the user exists
+
+    stmt = select(DBUsers).where(DBUsers.user_name == username)
+    result = await db.execute(stmt)
+    user_exists = result.scalar_one_or_none()
+
+    
+    # Return true if the user exists, otherwise false
+    return {"exists": bool(user_exists)}
 

@@ -380,7 +380,17 @@ async def user_get_all_audio(token: str = Header(...), db: AsyncSession = Depend
     result = await db.execute(stmt)
     audio_records = result.scalars().all()
 
-    return audio_records
+    return [
+    {
+        "track_id": audio.track_id,
+        "user_id": audio.user_id,
+        "audio_name": audio.audio_name,
+        "created_at": str(audio.created_at),
+        "file_path": audio.file_path
+        # Do NOT include: "file_data": audio.file_data
+    }
+    for audio in audio_records
+    ]
 
 
 @router.put("/audio/update/{audio_id}")

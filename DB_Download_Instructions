@@ -14,5 +14,3 @@ Then, right click on servers, click register, name it backend, and make sure con
 Now, expand backend. right click on Login/Group Roles. clikc create. Name it Audio. Go to definition, for password use Audio@2025. Go to privelegs, go to Can Login and check it. 
 
 Then, right click on databases, click create, name it mydb, Go to security, add Audio to security with CTc or ALL selected (to access the database)
-
-I think thats all

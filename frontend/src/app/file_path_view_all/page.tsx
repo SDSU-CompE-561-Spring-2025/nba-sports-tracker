@@ -15,6 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { motion, AnimatePresence } from "framer-motion";
 import { useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+
+
 
 export function InputDemo() {
   return <Input type="email" placeholder="Email" />
@@ -31,6 +35,8 @@ type AudioRecord = {
 export default function ViewFilePaths() {
     const [audioData, setAudioData] = useState<AudioRecord[]>([]);
 
+    const { logout } = useAuth()
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
 
     const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
@@ -54,8 +60,11 @@ export default function ViewFilePaths() {
                         token: token, // Send only the token
                     },
                 });
-                if (!res.ok) throw new Error("Failed to fetch");
-
+                if (!res.ok) {
+                  logout(); // Clear context and token
+                  router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
+                  return;
+              }
                 const data = await res.json();
                 setAudioData(data);
             } catch (err) {

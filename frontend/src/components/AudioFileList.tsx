@@ -1,17 +1,16 @@
-// app/account_page/AudioFilesList.tsx
 "use client";
 
 import { useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch }    from "@/lib/api";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { Button }      from "@/components/ui/button";
+import { Input }       from "@/components/ui/input";
+import { useToast }    from "@/components/ui/use-toast";
 
 interface AudioFile {
   id:   number;
-  name: string;
   path: string;
+  name: string;
 }
 
 interface Props {
@@ -19,33 +18,33 @@ interface Props {
 }
 
 export default function AudioFilesList({ files }: Props) {
-  const [list, setList] = useState<AudioFile[]>(files);
-  const [editingId, setEditingId] = useState<number | null>(null);
   const { toast } = useToast();
 
+  // 1) Keep your own copy of paths so the inputs stay in sync
+  const [list, setList] = useState<AudioFile[]>(files);
+
+  // 2) Track which row is being edited
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  // 3) Handlers
+
+  // Delete is unchanged
   const handleDelete = async (audioId: number) => {
-    try {
-      await apiFetch(`/auth/audio/delete/${audioId}`, { method: "DELETE" });
-      setList(prev => prev.filter(f => f.id !== audioId));
-      toast("File deleted");
-    } catch {
-      toast.error("Delete failed");
-    }
+    await apiFetch(`/auth/audio/delete/${audioId}`, { method: "DELETE" });
+    setList((l) => l.filter((f) => f.id !== audioId));
+    toast("File removed");
   };
 
+  // Rename now only does the API call; it takes the new path
   const handleSave = async (audioId: number) => {
-    const file = list.find(f => f.id === audioId);
+    const file = list.find((f) => f.id === audioId);
     if (!file) return;
-    try {
-      await apiFetch(`/auth/audio/update/${audioId}`, {
-        method: "PUT",
-        body: JSON.stringify({ audio_name: file.name, file_path: file.path }),
-      });
-      toast("File updated");
-      setEditingId(null);
-    } catch {
-      toast.error("Update failed");
-    }
+    await apiFetch(`/auth/audio/update/${audioId}`, {
+      method: "PUT",
+      body: JSON.stringify({ audio_name: file.name, file_path: file.path }),
+    });
+    toast("File renamed");
+    setEditingId(null);
   };
 
   return (
@@ -53,53 +52,60 @@ export default function AudioFilesList({ files }: Props) {
       <CardHeader>
         <h2 className="text-xl font-semibold">Saved Audio Files</h2>
       </CardHeader>
+
       <CardContent className="space-y-4">
-        {list.length > 0 && (
-          <div className="flex items-center space-x-2 px-4">
-            <div className="w-8 text-base font-semibold text-foreground">#</div>
-            <div className="w-1/3 text-base font-semibold text-muted-foreground">Audio Name</div>
-            <div className="flex-1 text-base font-semibold text-muted-foreground">Filepath</div>
-            <div className="w-32" />
-          </div>
-        )}
         {list.length === 0 ? (
           <p>No saved files yet.</p>
         ) : (
           list.map((file, idx) => (
             <div key={file.id} className="flex items-center space-x-2">
-              <div className="w-8 text-base text-foreground">{idx + 1}</div>
+              {/* 1-based index */}
+              <div className="w-6 text-base text-foreground">{idx + 1}.</div>
+
+              {/* Audio Name (controlled) */}
               <Input
                 value={file.name}
-                onChange={e =>
-                  setList(prev =>
-                    prev.map(f =>
-                      f.id === file.id ? { ...f, name: e.target.value } : f
-                    )
-                  )
-                }
                 disabled={editingId !== file.id}
-                className="w-1/3 text-base"
+                onChange={(e) => {
+                  // 1) grab value synchronously
+                  const newName = e.currentTarget.value;
+                  // 2) update state
+                  setList((prev) =>
+                    prev.map((f) =>
+                      f.id === file.id ? { ...f, name: newName } : f
+                    )
+                  );
+                }}
+                className="w-1/3 text-base text-foreground"
               />
+
+              {/* File Path (controlled) */}
               <Input
                 value={file.path}
-                onChange={e =>
-                  setList(prev =>
-                    prev.map(f =>
-                      f.id === file.id
-                        ? { ...f, path: e.currentTarget.value }
-                        : f
-                    )
-                  )
-                }
                 disabled={editingId !== file.id}
-                className="flex-1 text-base"
+                onChange={(e) => {
+                  // grab it immediately
+                  const newPath = e.currentTarget.value;
+                  setList((prev) =>
+                    prev.map((f) =>
+                      f.id === file.id ? { ...f, path: newPath } : f
+                    )
+                  );
+                }}
+                className="flex-1 text-base text-foreground"
               />
+
+              {/* Actions */}
               {editingId === file.id ? (
                 <>
                   <Button size="sm" onClick={() => handleSave(file.id)}>
                     Save
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingId(null)}
+                  >
                     Cancel
                   </Button>
                 </>
@@ -108,7 +114,11 @@ export default function AudioFilesList({ files }: Props) {
                   <Button size="sm" onClick={() => setEditingId(file.id)}>
                     Edit
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(file.id)}>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(file.id)}
+                  >
                     Delete
                   </Button>
                 </>

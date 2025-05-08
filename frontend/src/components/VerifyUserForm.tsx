@@ -7,7 +7,7 @@ import { API_HOST_BASE_URL } from "@/lib/constants"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { getUser } from "@/lib/auth"
+import { verifyUser } from "@/lib/auth"
 import { toast } from "sonner"
 import { LockKeyhole } from "lucide-react"
 
@@ -25,30 +25,28 @@ function VerifyUserForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const token = localStorage.getItem("accessToken")
-      if (!token) {
-        throw Error("No Token exists for user")
+    const res = await verifyUser(values.user_name);
+    if(res) {
+      const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/newcoderequest?username=${values.user_name}`, {
+        method: 'PUT',
+      });
+  
+      if(response.status == 404) {
+        throw Error("User not found")
       }
-      const res = await getUser()
-      if (res.user_name != values.user_name) {
-        throw Error("Username provided is wrong")
-      }
-      const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/newcoderequest`, {
-        method: "PUT",
-        headers: {
-          token: token,
-        },
-      })
-
       if (response.ok) {
-        toast.success("Verification successful! Redirecting...")
+        localStorage.setItem("user_name", values.user_name)
         setTimeout(() => {
-          window.location.href = "/forgot_password/verify-code"
-        }, 2000)
-        return true
+          window.location.href = '/forgot_password/verify-code';
+        }, 2000);
+        return true;
       }
-      throw new Error("Invalid Credentials")
-    } catch (err: any) {
+    }
+    else {
+    throw new Error('Invalid Credentials');
+    }
+    }
+    catch(err: any) {
       toast.error(err.message ?? "Error!!")
     }
   }

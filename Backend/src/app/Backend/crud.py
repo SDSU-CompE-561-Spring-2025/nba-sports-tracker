@@ -66,24 +66,31 @@ def make_new_user(new_user: UserCreateInput, db : Session = Depends(get_db)):
     return user_save
 
 @router.put("/user/verify")
-def verify_user(verification_code: str, token: str = Header(...), db: Session = Depends(get_db)):
-    token_data = decode_access_token(token)
-    user_id = token_data.username  # Assuming the username is stored as the user ID in the token
+def verify_user(user_name: str, verification_code: str, db: Session = Depends(get_db)):
+    try:
+        # Validate input
+        if not user_name or not verification_code:
+            raise HTTPException(status_code=400, detail="Username and verification code are required")
 
-    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_id).first()
-    if not selected_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    if selected_user.verification_code == str(verification_code):
-        if datetime.now(timezone.utc) < selected_user.verification_code_expiry:
-            selected_user.is_verified = True
-            db.commit()
-            db.refresh(selected_user)
-            return selected_user
+        # Query the database
+        selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_name).first()
+        if not selected_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Verify the code
+        if selected_user.verification_code == str(verification_code):
+            if datetime.now(timezone.utc) < selected_user.verification_code_expiry:
+                selected_user.is_verified = True
+                db.commit()
+                db.refresh(selected_user)
+                return {"detail": "User verified successfully"}
+            else:
+                raise HTTPException(status_code=400, detail="Verification code expired, please request a new one")
         else:
-            raise HTTPException(status_code=400, detail="Verification code expired, please request a new one")
-    else:
-        raise HTTPException(status_code=400, detail="Invalid verification code")
+            raise HTTPException(status_code=400, detail="Invalid verification code")
+    except Exception as e:
+        print(f"Error verifying user: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @router.put("/user/verify/newcoderequest")
@@ -203,9 +210,9 @@ def update_username(up_user: UpdateUserName, token: str = Header(...), db: Sessi
     return selected_user.user_name
 
 
-@router.put("/user/update/password/{user_id}")
-def update_password(user_id: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
-    selected_user = db.query(DBUsers).filter(DBUsers.id == user_id).first()
+@router.put("/user/update/password")
+def update_password(user_name: int, up_user: UpdatePassword, db: Session = Depends(get_db)):
+    selected_user = db.query(DBUsers).filter(DBUsers.user_name == user_name).first()
     if not selected_user:
         raise HTTPException(status_code=404, detail="User not found")
 

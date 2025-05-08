@@ -8,6 +8,8 @@ import { API_HOST_BASE_URL } from '@/lib/constants'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { getUser } from '@/lib/auth'
+import { toast } from 'sonner'
 
 
 
@@ -25,10 +27,19 @@ function VerifyUserForm() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/newcoderequest/${values.user_name}`, {
+    try {
+    const token = localStorage.getItem("accessToken")
+    if(!token) {
+      throw Error("No Token exists for user")
+    }
+    const res = await getUser();
+     if(res.user_name != values.user_name) {
+        throw Error("Username provided is wrong")
+     }
+     const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/newcoderequest`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
+        token: token
       },
     });
 
@@ -39,6 +50,13 @@ function VerifyUserForm() {
       return true;
     }
     throw new Error('Invalid Credentials');
+
+    }
+    catch(err: any) {
+      toast.error(err.message ?? "Error!!")
+    }
+    
+   
   }
 
   return (

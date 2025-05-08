@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import PageSelect from "@/components/PageSelect";
 import { Toaster } from "@/components/ui/use-toast"
 
 import NavBar from "@/components/NavBar";

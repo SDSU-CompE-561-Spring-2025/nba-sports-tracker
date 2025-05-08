@@ -24,6 +24,9 @@ function ChangePasswordForm() {
     .object({
       password: z.string().min(6, { message: "Password must be at least 6 characters" }),
       confirm_password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+      verification_code: z.string()
+      .min(6, { message: "Verification Code must be 6 characters" })
+      .max(6, { message: "Verification Code must be 6 characters" }),
     })
     .refine((data) => data.password === data.confirm_password, {
       message: "Passwords don't match",
@@ -33,19 +36,25 @@ function ChangePasswordForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      verification_code: "",
       password: "",
       confirm_password: "",
     },
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const data = {
+      user_name: userName,
+      verification_code: values.verification_code,
+      password: values.password
+    }
     try {
-      const response = await fetch(`${API_HOST_BASE_URL}/auth/user/verify/${userName}`, {
+      const response = await fetch(`${API_HOST_BASE_URL}/auth/reset-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: values.password,
+        body: JSON.stringify(data)
       })
 
       if (response.ok) {
@@ -75,6 +84,19 @@ function ChangePasswordForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+              control={form.control}
+              name="verification_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Verification Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter 6-digit code" {...field} className="h-10" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="password"

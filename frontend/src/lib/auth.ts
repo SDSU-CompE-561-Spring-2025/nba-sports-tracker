@@ -12,6 +12,12 @@ export interface TokenResponse {
   expires_in: number;
 }
 
+export interface User {
+  user_name: string;
+  email: string;
+  password: number;
+}
+
 /**
  * Call your FastAPI backend to get a JWT and store it.
  * @throws if the response isn’t ok
@@ -52,4 +58,24 @@ export function getToken(): string | null {
 
 export function setToken(token: string) {
   localStorage.setItem('accessToken', token);
+}
+
+export async function getUser(): Promise<User> {
+    const token = localStorage.getItem("accessToken");
+    if(!token) {
+      throw Error("No token exists for user")
+    } 
+    const res = await fetch(`${API_HOST_BASE_URL}/auth/user`, {
+      method: 'GET',
+      headers: {
+        token: token,
+      }
+    });
+  
+    if (!res.ok) {
+      throw new Error('Invalid token');
+    }
+  
+    const json = (await res.json()) as User;
+    return json;
 }

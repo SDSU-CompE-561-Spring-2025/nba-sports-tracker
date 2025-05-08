@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
 export default function Home() {
-  redirect("/sign_in_sign_up/sign-in");
+    const token = localStorage.getItem("accessToken")
+    if(token) redirect("/file_path_view_all")
+    else redirect("/sign_in_sign_up/sign-in");
 }

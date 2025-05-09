@@ -231,7 +231,18 @@ async def get_user_by_username(token: str = Header(...), db: AsyncSession = Depe
 
     if not sample_user:
         raise HTTPException(status_code=404, detail="No Audio")
-    return sample_user
+    
+    
+    return [
+        {
+            "track_id": audio.track_id,
+            "user_id": audio.user_id,
+            "audio_name": audio.audio_name,
+            "file_path": audio.file_path
+        }
+        for audio in sample_user
+    ]
+
 
 #got 200
 @router.put("/user/update/username")
@@ -394,14 +405,27 @@ async def user_get_all_audio(token: str = Header(...), db: AsyncSession = Depend
 
 
 @router.put("/audio/update/{audio_id}")
-async def update_audio(audio_id: int, audio_input: AudioCreateInput, db: AsyncSession = Depends(get_db)):
-    # Check if audio exists
+async def update_audio(audio_id: int, audio_input: AudioCreateInput, token: str = Header(...), db: AsyncSession = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+    
+    # Check if user exists/token is valid
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
+    result = await db.execute(stmt)
+    User = result.scalar_one_or_none()  
+    
     stmt = select(DBAudio).where(DBAudio.track_id == audio_id)
     result = await db.execute(stmt)
     selected_audio = result.scalar_one_or_none()
 
+    if not User:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     if not selected_audio:
         raise HTTPException(status_code=404, detail="Audio not found")
+    
+    if selected_audio.user_id != User.id:
+        raise HTTPException(status_code=401, detail="Audio not found for this user")
 
     stmt = select(DBAudio).where(DBAudio.user_id == selected_audio.user_id)
     result = await db.execute(stmt)
@@ -418,16 +442,36 @@ async def update_audio(audio_id: int, audio_input: AudioCreateInput, db: AsyncSe
     await db.commit()
     await db.refresh(selected_audio)
 
-    return selected_audio
+    return {
+        "track_id": selected_audio.track_id,
+        "user_id": selected_audio.user_id,
+        "audio_name": selected_audio.audio_name,
+        "file_path": selected_audio.file_path
+    }
 
 @router.delete("/audio/delete/{audio_id}")
-async def delete_audio(audio_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_audio(audio_id: int, token: str = Header(...), db: AsyncSession = Depends(get_db)):
+    token_data = decode_access_token(token)
+    user_id = token_data.username
+    
+    # Check if user exists/token is valid
+    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
+    result = await db.execute(stmt)
+    User = result.scalar_one_or_none()  
+    
     stmt = select(DBAudio).where(DBAudio.track_id == audio_id)
     result = await db.execute(stmt)
     audio_to_delete = result.scalar_one_or_none()
+
+    if not User:
+        raise HTTPException(status_code=404, detail="User not found")
     
     if not audio_to_delete:
         raise HTTPException(status_code=404, detail="Audio not found with provided id")
+    
+    if audio_to_delete.user_id != User.id:
+        raise HTTPException(status_code=401, detail="Audio not found for this user")
+    
     name = audio_to_delete.audio_name
 
     await db.delete(audio_to_delete)

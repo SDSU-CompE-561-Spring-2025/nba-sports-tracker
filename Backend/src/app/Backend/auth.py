@@ -28,14 +28,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 def decode_access_token(token: str) -> TokenData:
-    try:
+    try: 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid Token")
         return TokenData(username=username)
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
 
 #Email User Verification
 def generate_verification_code():

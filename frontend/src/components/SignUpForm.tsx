@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 
 export default function SignUpForm() {
   const { token } = useAuth();               // ② grab the JWT
-  if (token) redirect("/dashboard"); // ③ if no token, render sign in/sign up page
+  if (token) redirect("/file_path_view_all"); // ③ if no token, render sign in/sign up page
 
   const formSchema = z.object({
     user_name: z.string().min(8, { message: "Username must be at least 8 characters" })

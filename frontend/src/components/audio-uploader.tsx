@@ -5,17 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/use-toastUpload";
-import { Upload, X, Play, Pause, Volume2 } from "lucide-react";
-import { upload } from "@vercel/blob/client";
+import { Upload, X, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AudioUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,10 +21,7 @@ export function AudioUploader() {
         toast("Invalid file type. Please upload an audio file (MP3, WAV, OGG).");
         return;
       }
-
       setFile(selectedFile);
-      const localUrl = URL.createObjectURL(selectedFile);
-      setAudioUrl(localUrl);
     }
   };
 
@@ -49,19 +42,40 @@ export function AudioUploader() {
         });
       }, 300);
 
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload-audio",
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Fetch token from local storage or authentication context
+      const token = localStorage.getItem("accessToken");
+
+      const response = await fetch("http://localhost:8000/auth/upload-audio-db/", {
+        method: "POST",
+        headers: {
+          token: token || "", // Pass the token as a custom header
+        },
+        body: formData,
       });
 
       clearInterval(progressInterval);
-      setUploadProgress(100);
-      setAudioUrl(blob.url);
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.detail === "Audio name already used") {
+          throw new Error("Audio name already used");
+        }
+        throw new Error(errorData.detail || "Failed to upload audio");
+      }
+
+      setUploadProgress(100);
       toast("Upload successful! Your audio file has been uploaded.");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload failed:", error);
-      toast("Upload failed. There was an error uploading your file. Please try again.");
+      if (error.message === "Audio name already used") {
+        toast("Upload failed: Audio name already used.");
+      } else {
+        toast("Upload failed. There was an error uploading your file. Please try again.");
+      }
     } finally {
       setIsUploading(false);
     }
@@ -69,24 +83,8 @@ export function AudioUploader() {
 
   const handleRemoveFile = () => {
     setFile(null);
-    setAudioUrl(null);
-    setIsPlaying(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-  };
-
-  const togglePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -138,26 +136,6 @@ export function AudioUploader() {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-
-                {audioUrl && (
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="icon" className="h-8 w-8" onClick={togglePlayPause}>
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                      </Button>
-                      <audio ref={audioRef} src={audioUrl} className="hidden" onEnded={() => setIsPlaying(false)} />
-                      <div className="w-full">
-                        <audio
-                          controls
-                          src={audioUrl}
-                          className="w-full h-8"
-                          onPlay={() => setIsPlaying(true)}
-                          onPause={() => setIsPlaying(false)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {isUploading && (
                   <div className="mb-4">

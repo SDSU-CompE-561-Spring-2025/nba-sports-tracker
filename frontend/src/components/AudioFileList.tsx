@@ -1,132 +1,114 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { apiFetch }    from "@/lib/api";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Button }      from "@/components/ui/button";
-import { Input }       from "@/components/ui/input";
-import { useToast }    from "@/components/ui/use-toast";
+import type React from "react"
+import { useState, useRef, useEffect } from "react"
+import { toast } from "react-toastify"
 
 interface AudioFile {
-  id:   number;
-  path: string;
-  name: string;
+  id: number
+  title: string
+  duration: number
 }
 
-interface Props {
-  files: AudioFile[];
+interface AudioFilesListProps {
+  audioFiles: AudioFile[]
 }
 
-export default function AudioFilesList({ files }: Props) {
-  const { toast } = useToast();
+const AudioFilesList: React.FC<AudioFilesListProps> = ({ audioFiles }) => {
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  // 1) Keep your own copy of paths so the inputs stay in sync
-  const [list, setList] = useState<AudioFile[]>(files);
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
 
-  // 2) Track which row is being edited
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const formatTime = (time: number): string => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
+  }
 
-  // 3) Handlers
+  const playAudio = async (audioId: number) => {
+    // If already playing this track, toggle play/pause
+    if (currentlyPlaying === audioId) {
+      if (audioRef.current) {
+        if (isPlaying) {
+          audioRef.current.pause()
+          setIsPlaying(false)
+        } else {
+          audioRef.current.play()
+          setIsPlaying(true)
+        }
+      }
+      return
+    }
 
-  // Delete is unchanged
-  const handleDelete = async (audioId: number) => {
-    await apiFetch(`/auth/audio/delete/${audioId}`, { method: "DELETE" });
-    setList((l) => l.filter((f) => f.id !== audioId));
-    toast("File removed");
-  };
+    // Stop current audio if playing
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
 
-  // Rename now only does the API call; it takes the new path
-  const handleSave = async (audioId: number) => {
-    const file = list.find((f) => f.id === audioId);
-    if (!file) return;
-    await apiFetch(`/auth/audio/update/${audioId}`, {
-      method: "PUT",
-      body: JSON.stringify({ audio_name: file.name, file_path: file.path }),
-    });
-    toast("File renamed");
-    setEditingId(null);
-  };
+    try {
+      // Get the token for authentication
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        toast("Authentication required")
+        return
+      }
+
+      // Create an audio element
+      const audio = new Audio()
+
+      // Set up error handling
+      audio.onerror = (e) => {
+        console.error("Audio error:", e)
+        toast("Could not play audio file")
+        setIsPlaying(false)
+        setCurrentlyPlaying(null)
+      }
+
+      // Set up event listeners
+      audio.onended = () => {
+        setIsPlaying(false)
+        setCurrentlyPlaying(null)
+      }
+
+      // Create the audio URL with the token as a query parameter
+      const audioUrl = `/auth/download-audio/${audioId}?token=${encodeURIComponent(token)}`
+      audio.src = audioUrl
+
+      // Try to play the audio
+      await audio.play()
+      audioRef.current = audio
+      setCurrentlyPlaying(audioId)
+      setIsPlaying(true)
+    } catch (err) {
+      console.error("Error setting up audio:", err)
+      toast("Could not play audio file")
+    }
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-xl font-semibold">Saved Audio Files</h2>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {list.length === 0 ? (
-          <p>No saved files yet.</p>
-        ) : (
-          list.map((file, idx) => (
-            <div key={file.id} className="flex items-center space-x-2">
-              {/* 1-based index */}
-              <div className="w-6 text-base text-foreground">{idx + 1}.</div>
-
-              {/* Audio Name (controlled) */}
-              <Input
-                value={file.name}
-                disabled={editingId !== file.id}
-                onChange={(e) => {
-                  // 1) grab value synchronously
-                  const newName = e.currentTarget.value;
-                  // 2) update state
-                  setList((prev) =>
-                    prev.map((f) =>
-                      f.id === file.id ? { ...f, name: newName } : f
-                    )
-                  );
-                }}
-                className="w-1/3 text-base text-foreground"
-              />
-
-              {/* File Path (controlled) */}
-              <Input
-                value={file.path}
-                disabled={editingId !== file.id}
-                onChange={(e) => {
-                  // grab it immediately
-                  const newPath = e.currentTarget.value;
-                  setList((prev) =>
-                    prev.map((f) =>
-                      f.id === file.id ? { ...f, path: newPath } : f
-                    )
-                  );
-                }}
-                className="flex-1 text-base text-foreground"
-              />
-
-              {/* Actions */}
-              {editingId === file.id ? (
-                <>
-                  <Button size="sm" onClick={() => handleSave(file.id)}>
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditingId(null)}
-                  >
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button size="sm" onClick={() => setEditingId(file.id)}>
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(file.id)}
-                  >
-                    Delete
-                  </Button>
-                </>
-              )}
-            </div>
-          ))
-        )}
-      </CardContent>
-    </Card>
-  );
+    <div>
+      {audioFiles.map((audioFile) => (
+        <div key={audioFile.id}>
+          <p>
+            {audioFile.title} ({formatTime(audioFile.duration)})
+            <button onClick={() => playAudio(audioFile.id)}>
+              {currentlyPlaying === audioFile.id && isPlaying ? "Pause" : "Play"}
+            </button>
+          </p>
+        </div>
+      ))}
+    </div>
+  )
 }
+
+export default AudioFilesList

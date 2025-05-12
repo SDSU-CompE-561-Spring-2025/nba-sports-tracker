@@ -390,13 +390,13 @@ async def user_get_all_audio(token: str = Header(...), db: AsyncSession = Depend
     stmt = select(DBAudio).where(DBAudio.user_id == user_id)
     result = await db.execute(stmt)
     audio_records = result.scalars().all()
-
+    
     return [
     {
         "track_id": audio.track_id,
         "user_id": audio.user_id,
         "audio_name": audio.audio_name,
-        "created_at": str(audio.created_at),
+        "created_at": audio.created_at,
         "file_path": audio.file_path
         # Do NOT include: "file_data": audio.file_data
     }
@@ -520,37 +520,42 @@ async def upload_audio_to_db(
     if not file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="File is not audio")
     
-    token_data = decode_access_token(token)
-    user_id = token_data.username
+    try:
+        token_data = decode_access_token(token)
+        user_id = token_data.username
     
-    # Check if user exists/token is valid
-    stmt = select(DBUsers).where(DBUsers.user_name == user_id)
-    result = await db.execute(stmt)
-    User = result.scalar_one_or_none()  
+        # Check if user exists/token is valid
+        stmt = select(DBUsers).where(DBUsers.user_name == user_id)
+        result = await db.execute(stmt)
+        User = result.scalar_one_or_none()  
 
-    user_id = User.id  
+        user_id = User.id  
 
-    stmt = select(DBAudio).where(DBAudio.user_id == user_id)
-    result = await db.execute(stmt)
-    audio_records = result.scalars().all()
-
+        stmt = select(DBAudio).where(DBAudio.user_id == user_id)
+        result = await db.execute(stmt)
+        audio_records = result.scalars().all()
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
     if (file.filename in [audio.audio_name for audio in audio_records]):
         raise HTTPException(status_code=400, detail="Audio name already used")
 
     audio_bytes = await file.read()
 
+    # Save the audio record with created_at as an ISO 8601 string
     new_audio = DBAudio(
         user_id=user_id,
         audio_name=file.filename,
         file_path='/test/path',
-        file_data=audio_bytes
+        file_data=audio_bytes,
+        created_at=str(datetime.now(timezone.utc).isoformat())  # Save as ISO 8601 string
     )
 
     db.add(new_audio)
     await db.commit()
     await db.refresh(new_audio)
 
-    return {"track_id": new_audio.track_id, "name": new_audio.audio_name}
+    return {"track_id": new_audio.track_id, "name": new_audio.audio_name, "created_at": new_audio.created_at}
 
 @router.get("/download-audio/{track_id}")
 async def download_audio(

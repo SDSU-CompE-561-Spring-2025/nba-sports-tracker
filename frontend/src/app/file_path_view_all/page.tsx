@@ -5,13 +5,13 @@ import { API_HOST_BASE_URL } from "@/lib/constants"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Trash2, FileAudio, Calendar, FolderOpen, Play, Pause, Volume2 } from "lucide-react"
+import { Search, Trash2, FileAudio, Calendar, Play, Pause, Volume2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 
 type AudioRecord = {
@@ -38,8 +38,7 @@ export default function ViewFilePaths() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const animationRef = useRef<number | null>(null)
   const { logout } = useAuth()
-  const router = useRouter();
-  
+  const router = useRouter()
 
   useEffect(() => {
     const fetchAudio = async () => {
@@ -47,9 +46,9 @@ export default function ViewFilePaths() {
       try {
         const token = localStorage.getItem("accessToken")
         if (!token) {
-          logout(); // Clear context and token
-          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
-          return;
+          logout() // Clear context and token
+          router.push("/sign_in_sign_up/sign-in") // Redirect to sign-in
+          return
         }
 
         const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/get_audios`, {
@@ -58,10 +57,10 @@ export default function ViewFilePaths() {
           },
         })
         if (!res.ok) {
-          logout(); // Clear context and token
-          router.push("/sign_in_sign_up/sign-in"); // Redirect to sign-in
-          return;
-      }
+          logout() // Clear context and token
+          router.push("/sign_in_sign_up/sign-in") // Redirect to sign-in
+          return
+        }
 
         const data = await res.json()
         setAudioData(data)
@@ -113,7 +112,7 @@ export default function ViewFilePaths() {
       const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/delete/${selectedTrackId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          token: token,
         },
       })
 
@@ -130,30 +129,81 @@ export default function ViewFilePaths() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "No Date Available"
+  const formatDate = (dateString: string | Date) => {
+    if (!dateString || dateString === "None") return "No Date Available"
 
     try {
-      // First try the standard Date parsing
-      const date = new Date(dateString)
+      // If it's an ISO timestamp (like 2025-05-12T00:43:31.538689+00:00)
+      if (typeof dateString === "string" && dateString.includes("T")) {
+        const date = new Date(dateString)
+
+        // Check if the date is valid
+        if (!isNaN(date.getTime())) {
+          // Get today and yesterday for relative time
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+
+          const yesterday = new Date(today)
+          yesterday.setDate(yesterday.getDate() - 1)
+
+          const fileDate = new Date(date)
+          fileDate.setHours(0, 0, 0, 0)
+
+          // Format the time part
+          const timeStr = date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+
+          // Check if it's today or yesterday
+          if (fileDate.getTime() === today.getTime()) {
+            return `Today at ${timeStr}`
+          } else if (fileDate.getTime() === yesterday.getTime()) {
+            return `Yesterday at ${timeStr}`
+          } else {
+            // Format date for older files
+            return date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            })
+          }
+        }
+      }
+
+      // If it's just a time string (HH:MM:SS)
+      const timeOnlyRegex = /^(\d{1,2}):(\d{1,2}):(\d{1,2})$/
+      const timeMatch = typeof dateString === "string" ? dateString.match(timeOnlyRegex) : null
+
+      if (timeMatch) {
+        const [_, hours, minutes, seconds] = timeMatch
+        return `Today at ${Number.parseInt(hours)}:${minutes.padStart(2, "0")} ${Number.parseInt(hours) >= 12 ? "PM" : "AM"}`
+      }
+
+      // If the input is already a Date object or can be parsed as a standard date
+      const date = typeof dateString === "string" ? new Date(dateString) : dateString
 
       // Check if the date is valid
       if (!isNaN(date.getTime())) {
-        return new Intl.DateTimeFormat("en-US", {
-          weekday: "short", // Add day of week
-          year: "numeric",
+        return date.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
-          hour: "2-digit",
+          year: "numeric",
+          hour: "numeric",
           minute: "2-digit",
-        }).format(date)
+          hour12: true,
+        })
       }
 
-      // If standard parsing fails, return the original string
-      return dateString
+      // If parsing fails, return the original string
+      return dateString.toString()
     } catch (error) {
       // If any error occurs during parsing, return the original string
-      return dateString
+      return dateString.toString()
     }
   }
 
@@ -182,26 +232,54 @@ export default function ViewFilePaths() {
       return
     }
 
+    // Get token for authentication
+    const token = localStorage.getItem("accessToken")
+    if (!token) {
+      alert("Authentication required")
+      return
+    }
+
     // Create new audio element
-    const audio = new Audio(`${API_HOST_BASE_URL}${filePath}`)
-    audio.volume = volume
+    const audio = new Audio()
 
-    audio.onloadedmetadata = () => {
-      setDuration(audio.duration)
-    }
+    // Set up headers for fetch request
+    const headers = new Headers()
+    headers.append("token", token)
 
-    audio.onended = () => {
-      setIsPlaying(false)
-      setCurrentlyPlaying(null)
-      setCurrentTime(0)
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-        animationRef.current = null
-      }
-    }
+    // Fetch the audio file first to handle authentication properly
+    fetch(`${API_HOST_BASE_URL}/auth/download-audio/${trackId}`, {
+      headers: headers,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`)
+        }
+        return response.blob()
+      })
+      .then((blob) => {
+        // Create object URL from blob
+        const audioUrl = URL.createObjectURL(blob)
+        audio.src = audioUrl
+        audio.volume = volume
 
-    audio
-      .play()
+        audio.onloadedmetadata = () => {
+          setDuration(audio.duration)
+        }
+
+        audio.onended = () => {
+          setIsPlaying(false)
+          setCurrentlyPlaying(null)
+          setCurrentTime(0)
+          if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current)
+            animationRef.current = null
+          }
+          // Clean up the object URL when done
+          URL.revokeObjectURL(audioUrl)
+        }
+
+        return audio.play()
+      })
       .then(() => {
         audioRef.current = audio
         setCurrentlyPlaying(trackId)
@@ -217,6 +295,7 @@ export default function ViewFilePaths() {
       })
       .catch((err) => {
         console.error("Error playing audio:", err)
+        alert("Could not play audio file. Please try again.")
       })
   }
 
@@ -319,12 +398,6 @@ export default function ViewFilePaths() {
                     </TableHead>
                     <TableHead className="text-muted-foreground font-medium">
                       <div className="flex items-center gap-2">
-                        <FolderOpen className="h-4 w-4 text-primary" />
-                        Path
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-muted-foreground font-medium">
-                      <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-primary" />
                         Created
                       </div>
@@ -387,11 +460,6 @@ export default function ViewFilePaths() {
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-foreground">{audio.audio_name}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm text-foreground font-mono truncate max-w-[200px] md:max-w-[300px]">
-                              {audio.file_path}
-                            </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="bg-muted text-foreground border-border">

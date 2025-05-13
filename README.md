@@ -38,7 +38,7 @@ Audio Hub is a full-stack audio management web app built with FastAPI and Next.j
 - Forgot password and reset via email code
 - Secure account info editing (username, password, email)
 - Audio playback and streaming from backend
-- PostgreSQL with async support using `asyncpg`
+- PostgreSQL 
 
 ---
 
@@ -48,8 +48,8 @@ Audio Hub is a full-stack audio management web app built with FastAPI and Next.j
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd nba-sports-tracker/backend
+   git clone https://github.com/SDSU-CompE-561-Spring-2025/nba-sports-tracker
+   cd nba-sports-tracker/PSQL_Backend
    ```
 
 2. **Install Hatch and create environment**
@@ -127,7 +127,7 @@ Audio Hub is a full-stack audio management web app built with FastAPI and Next.j
 ## Running the Application
 
 1. Start PostgreSQL
-2. Run backend with `uvicorn app.main:app --reload`
+2. Run backend with `hatch run dev`
 3. Start frontend with `npm run dev`
 4. Access:
    - Frontend: `http://localhost:3000`

@@ -18,8 +18,12 @@ import { useRouter } from "next/navigation";
 import { login as apiLogin, type LoginData } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
+// Updated formSchema with validation for single quotes
 const formSchema = z.object({
-    username: z.string().min(2, { message: "Username must be at least 2 characters." }),
+    username: z
+        .string()
+        .min(2, { message: "Username must be at least 2 characters." })
+        .regex(/^[^']*$/, { message: "Username cannot contain single quotes (')" }), // Disallow single quotes
     password: z.string().min(3, { message: "Password must be at least 3 characters." }),
 });
 

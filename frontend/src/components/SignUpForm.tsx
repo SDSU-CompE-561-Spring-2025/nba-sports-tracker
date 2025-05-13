@@ -16,21 +16,27 @@ import { Button } from '@/components/ui/button';
 
 import { API_HOST_BASE_URL } from '@/lib/constants';
 
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from '@/context/AuthContext';
 import { redirect } from 'next/navigation';
 import { toast } from 'sonner';
 
-
-
 export default function SignUpForm() {
-  const { token } = useAuth();               // ② grab the JWT
-  if (token) redirect("/file_path_view_all"); // ③ if no token, render sign in/sign up page
+  const { token } = useAuth();
+  if (token) redirect("/file_path_view_all");
 
   const formSchema = z.object({
-    user_name: z.string().min(8, { message: "Username must be at least 8 characters" })
-      .max(40, { message: "Username must be at most 64 characters" }),
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters" })
+    user_name: z
+      .string()
+      .min(8, { message: "Username must be at least 8 characters" })
+      .max(40, { message: "Username must be at most 40 characters" })
+      .regex(/^[^']*$/, { message: "Username cannot contain single quotes (')" }),
+    email: z
+      .string()
+      .email({ message: "Invalid email address" })
+      .regex(/^[^'].*$/, { message: "Email cannot start with a single quote (')" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" })
       .max(64, { message: "Password must be at most 64 characters" })
       .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
       .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
@@ -38,7 +44,6 @@ export default function SignUpForm() {
       .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
   });
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,7 +55,6 @@ export default function SignUpForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-
       const data = values;
 
       const response = await fetch(`${API_HOST_BASE_URL}/auth/make_user`, {
@@ -61,30 +65,22 @@ export default function SignUpForm() {
         body: JSON.stringify(data),
       });
 
-      if(response.status == 405 || response.status == 400) {
-        throw Error("User already Exists. Try Again!")
-      }
-      else if (response.ok) {
+      if (response.status === 405 || response.status === 400) {
+        throw Error("User already exists. Try again!");
+      } else if (response.ok) {
         toast.success("Welcome!!!");
         setTimeout(() => {
           window.location.href = '/';
         }, 2000);
       }
-      
-    }
-    catch (err: any) {
-      // Show an error message
-      toast.error(err.message || "Login failed");
+    } catch (err: any) {
+      toast.error(err.message || "Sign-up failed");
     }
   }
 
-
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-3"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
         <FormField
           control={form.control}
           name="user_name"
@@ -92,12 +88,8 @@ export default function SignUpForm() {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Username"
-                  {...field}
-                />
+                <Input placeholder="Username" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
@@ -109,13 +101,8 @@ export default function SignUpForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input
-                  type={'Email'}
-                  placeholder="Enter you email here"
-                  {...field}
-                />
+                <Input type="email" placeholder="Enter your email here" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
@@ -127,18 +114,13 @@ export default function SignUpForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input
-                  type={'password'}
-                  placeholder="Password"
-                  {...field}
-                />
+                <Input type="password" placeholder="Password" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button variant={"outline"} type={"submit"} className={"mt-5"}>
+        <Button variant="outline" type="submit" className="mt-5">
           Sign Up
         </Button>
       </form>

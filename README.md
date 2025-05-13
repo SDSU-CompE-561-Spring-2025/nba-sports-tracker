@@ -139,7 +139,7 @@ Audio Hub is a full-stack audio management web app built with FastAPI and Next.j
 
 ```
 nba-sports-tracker/
-├── backend/
+├── PSQL_Backend/
 │   ├── main.py
 │   ├── models/
 │   ├── schemas/

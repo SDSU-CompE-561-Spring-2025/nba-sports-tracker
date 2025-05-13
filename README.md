@@ -73,7 +73,7 @@ Audio Hub is a full-stack audio management web app built with FastAPI and Next.j
 
 5. **Run the backend**
    ```bash
-   uvicorn app.main:app --reload
+   hatch run dev
    ```
 
 ---

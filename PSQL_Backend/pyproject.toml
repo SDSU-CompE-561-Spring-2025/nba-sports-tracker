@@ -12,7 +12,7 @@ license = "MIT"
 keywords = ["fastapi", "nba", "sports", "tracker"]
 authors = [
   { name = "Logan Hall", email = "logan-hall@sdsu.edu" },
-  { name = "Noah Molla", email = "noahmolla@sdsu.edu" },
+  { name = "Noah Molla", email = "noahmolla7888@sdsu.edu" },
   { name = "Christian Kassab", email = "christianlkassab@sdsu.edu" },
   { name = "Laith", email = "loraha4821@sdsu.edu" },
   { name = "Sean Hashem", email = "seanhashem@sdsu.edu" },

@@ -19,6 +19,9 @@ RUN pip install --upgrade pip
 #install python dependencies
 RUN pip install -r requirements.txt
 
+# ⬇️ IMPORTANT: fix CRLF and make executable
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
+
 #expose port 8000
 EXPOSE 8000
 

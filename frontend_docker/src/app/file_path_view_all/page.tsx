@@ -109,7 +109,7 @@ export default function ViewFilePaths() {
         return
       }
 
-      const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/delete${selectedTrackId}`, {
+      const res = await fetch(`${API_HOST_BASE_URL}/auth/audio/delete/${selectedTrackId}`, {
         method: "DELETE",
         headers: {
           token: token,

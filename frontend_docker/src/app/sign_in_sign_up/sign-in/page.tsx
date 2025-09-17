@@ -1,9 +1,24 @@
+"use client";
+
+
 import SignInForm from "@/components/SignInForm";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function SignInPage() {
+  const { token } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (token) {
+      router.push("/file_path_view_all");
+    }
+  }, [token, router]);
+  
   return (
     <div
       className="
